@@ -1,0 +1,10 @@
+.venv/
+__pycache__/
+*.pyc
+tests/
+.pytest_cache/
+
+# Runtime state must not enter the image: the ledger is per-deployment, and the
+# private signing key must never be baked into a distributable artifact.
+var/sentinel.db
+var/keys/*private*

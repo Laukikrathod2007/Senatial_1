@@ -1,0 +1,40 @@
+# Python-generated files
+__pycache__/
+*.py[oc]
+build/
+dist/
+wheels/
+*.egg-info
+
+# Virtual environments
+.venv
+
+# Runtime state: SQLite ledger, cached models, generated reports.
+#
+# These rules exclude the *contents* of var/ rather than the directory itself.
+# That distinction is load-bearing: git will not re-include a file with a "!"
+# rule if one of its parent directories is excluded, so "backend/var/" followed
+# by a negation silently keeps the public key ignored.
+backend/var/*
+!backend/var/keys/
+backend/var/keys/*
+
+# The Ed25519 PUBLIC key is committed on purpose: verifying a signed audit
+# report means checking it against a key you already hold. If the key only ever
+# came from our server, a compromised server could serve a key matching forged
+# reports -- which would defeat the entire point of signing them.
+!backend/var/keys/ed25519_public.pem
+
+# The private key must never be committed. Belt and braces: the rule above
+# admits exactly one filename, and this re-excludes anything private-looking.
+backend/var/keys/*private*
+
+# Local configuration. The .env.example templates are committed; the .env files
+# they produce are not -- SENTINEL_JWT_SECRET lives there.
+.env
+.env.local
+!.env.example
+
+# Frontend
+node_modules/
+frontend/dist/

@@ -1,0 +1,190 @@
+/* SENTINEL — editorial theme.
+ *
+ * A signed audit report is a document, not a dashboard, so the interface is
+ * built to read like one: warm paper ground, dark ink, serif headings, hairline
+ * rules, generous measure. No gradients, no elevation, no decorative colour.
+ *
+ * Colour is semantic here, never ornamental. Red appears only where a finding
+ * is actually flagged, so its presence carries information rather than style.
+ * The default Tailwind blue/indigo/violet scales are deliberately never
+ * referenced anywhere in this project.
+ */
+
+@import "tailwindcss";
+
+/* Self-hosted: the container must render correctly with no network access. */
+@import "@fontsource/source-serif-4/400.css";
+@import "@fontsource/source-serif-4/600.css";
+@import "@fontsource/source-serif-4/400-italic.css";
+
+@theme {
+  /* Paper and ink. Warm neutrals rather than pure grey -- a flat #fff/#000
+   * reads as a screen, whereas a slight warmth reads as a printed page. */
+  --color-paper: #faf8f5;
+  --color-paper-sunk: #f3efe8;
+  --color-ink: #1c1a17;
+  --color-ink-soft: #423d36;
+  --color-muted: #6b655c;
+  --color-rule: #e2ddd4;
+  --color-rule-strong: #cbc4b8;
+
+  /* One accent, used sparingly: links, the active tab, primary action. A deep
+   * ink-red that belongs to the same warm family as the paper. */
+  --color-accent: #8c2f1e;
+  --color-accent-soft: #f6ebe7;
+
+  /* Reserved strictly for findings. */
+  --color-flag: #9b2c14;
+  --color-flag-soft: #fbeae5;
+  --color-caution: #8a6218;
+  --color-caution-soft: #fbf2df;
+  --color-clear: #2f5d3a;
+  --color-clear-soft: #eaf1e9;
+
+  --font-serif: "Source Serif 4", Charter, Georgia, "Times New Roman", serif;
+  --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto,
+    sans-serif;
+  --font-mono: ui-monospace, "Cascadia Code", "SF Mono", Consolas, monospace;
+}
+
+@layer base {
+  html {
+    -webkit-font-smoothing: antialiased;
+  }
+
+  body {
+    background-color: var(--color-paper);
+    color: var(--color-ink);
+    font-family: var(--font-sans);
+    line-height: 1.65;
+  }
+
+  h1,
+  h2,
+  h3 {
+    font-family: var(--font-serif);
+    font-weight: 600;
+    letter-spacing: -0.011em;
+    line-height: 1.25;
+  }
+
+  /* Statistics are read down a column and compared, so digits must align. */
+  table,
+  .tabular {
+    font-variant-numeric: tabular-nums;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-accent);
+    outline-offset: 2px;
+  }
+}
+
+@layer components {
+  /* A sheet of paper. Bordered rather than shadowed -- elevation is the visual
+   * grammar of an app, and this is meant to read as a record. */
+  .sheet {
+    @apply border border-rule bg-white px-6 py-5 sm:px-7 sm:py-6;
+  }
+
+  .rule-label {
+    @apply text-[0.7rem] font-semibold uppercase tracking-[0.13em] text-muted;
+  }
+
+  /* The plain-language panel. Docs 5.2 makes this a design constraint, not
+   * decoration: it must be legible to a 7th-9th standard reader, so it gets
+   * the largest body type on the page and a serif face for readability. */
+  .plain-answer {
+    @apply border-l-2 border-accent bg-paper-sunk px-5 py-4;
+  }
+
+  /* Tailwind v4's @apply cannot reference another custom class from this same
+   * layer, so the label utilities are inlined here rather than composed. */
+  .plain-answer dt {
+    @apply mt-4 text-[0.7rem] font-semibold uppercase tracking-[0.13em]
+           text-muted first:mt-0;
+  }
+
+  .plain-answer dd {
+    @apply mt-1 font-serif text-[1.0625rem] leading-relaxed text-ink;
+  }
+
+  .btn-primary {
+    @apply inline-flex items-center justify-center border border-accent
+           bg-accent px-4 py-2 text-sm font-medium text-white transition-colors
+           hover:bg-[#75281a] disabled:cursor-not-allowed disabled:opacity-45;
+  }
+
+  .btn-quiet {
+    @apply inline-flex items-center justify-center border border-rule-strong
+           bg-white px-4 py-2 text-sm font-medium text-ink transition-colors
+           hover:bg-paper-sunk disabled:cursor-not-allowed disabled:opacity-45;
+  }
+
+  .field {
+    @apply border border-rule-strong bg-white px-3 py-2 text-sm text-ink
+           placeholder:text-muted;
+  }
+
+  /* Data tables: hairline rules, no zebra striping, no vertical borders. */
+  .sheet-table {
+    @apply w-full border-collapse text-sm;
+  }
+
+  .sheet-table th {
+    @apply border-b border-rule-strong pb-2 pr-4 text-left align-bottom
+           text-[0.7rem] font-semibold uppercase tracking-[0.13em] text-muted;
+  }
+
+  .sheet-table td {
+    @apply border-b border-rule py-2.5 pr-4 align-top;
+  }
+
+  .sheet-table td:last-child,
+  .sheet-table th:last-child {
+    @apply pr-0;
+  }
+
+  .tag-flag,
+  .tag-caution,
+  .tag-clear,
+  .tag-quiet {
+    @apply inline-block px-2 py-0.5 text-[0.72rem] font-semibold uppercase
+           tracking-wider;
+  }
+
+  .tag-flag {
+    @apply bg-flag-soft text-flag;
+  }
+
+  .tag-caution {
+    @apply bg-caution-soft text-caution;
+  }
+
+  .tag-clear {
+    @apply bg-clear-soft text-clear;
+  }
+
+  .tag-quiet {
+    @apply bg-paper-sunk text-muted;
+  }
+
+  /* A finding worth reading before anything else on the page. */
+  .callout-flag,
+  .callout-clear,
+  .callout-note {
+    @apply border-l-2 px-5 py-4 font-serif text-[1.0625rem] leading-relaxed;
+  }
+
+  .callout-flag {
+    @apply border-flag bg-flag-soft text-ink;
+  }
+
+  .callout-clear {
+    @apply border-clear bg-clear-soft text-ink;
+  }
+
+  .callout-note {
+    @apply border-rule-strong bg-paper-sunk text-ink-soft;
+  }
+}

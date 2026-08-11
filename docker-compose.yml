@@ -1,0 +1,62 @@
+# SENTINEL full stack.
+#
+#   docker compose up --build
+#   frontend  http://localhost:5173
+#   API docs  http://localhost:8000/docs
+#
+# This is the deployment artifact, not the demo path. The live demo runs from
+# the CLI (`uv run sentinel demo run`, ~12s, no daemon and no network), because
+# a cold image build or a port conflict on stage is a failure the audience
+# watches happen. Build and verify this before the event, not during it.
+
+services:
+  backend:
+    build:
+      context: ./backend
+    ports:
+      - "8000:8000"
+    environment:
+      # Overridable, but not optional in any real deployment: the in-source
+      # default is a known value, and anyone holding it can mint a
+      # certified-auditor token with the largest query and privacy budget.
+      SENTINEL_JWT_SECRET: ${SENTINEL_JWT_SECRET:-dev-only-insecure-change-me-0000000000000000000000000000000000000}
+    volumes:
+      # The ledger and the signing key live outside the image. The key is
+      # generated on first run into this volume and must persist: rotating it
+      # would invalidate every previously sealed report, which is
+      # indistinguishable from tampering to anyone verifying them.
+      #
+      # Consequence worth knowing: a fresh volume mints a NEW keypair, so
+      # reports sealed here verify against this deployment's key, not the one
+      # committed to the repository. That is correct for a real deployment --
+      # each operator signs with their own key and publishes it. To demo
+      # against the committed key instead, mount the host keys read-only:
+      #     - ./backend/var/keys:/app/var/keys:ro
+      - sentinel-state:/app/var
+
+      # Precomputed target model and shadow ensemble (~450 MB), mounted rather
+      # than baked into the image. Without them the first audit retrains both,
+      # costing ~11s. Produced by running `uv run sentinel demo run` on the host.
+      - ./backend/var/artifacts:/app/var/artifacts:ro
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health')"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+      start_period: 20s
+
+  frontend:
+    build:
+      context: ./frontend
+      args:
+        # The browser reaches the API on the host, not inside the compose
+        # network, so this is a host-visible URL rather than "http://backend".
+        VITE_API_URL: http://localhost:8000
+    ports:
+      - "5173:80"
+    depends_on:
+      backend:
+        condition: service_healthy
+
+volumes:
+  sentinel-state:

@@ -1,0 +1,6 @@
+# The Ed25519 public key is verification material. Git's automatic CRLF
+# conversion on Windows checkouts would alter the bytes of the PEM file, so it
+# is pinned to LF and marked binary -- a verifier must get exactly the bytes
+# that were committed.
+*.pem -text
+backend/var/keys/ed25519_public.pem binary
