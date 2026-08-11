@@ -19,7 +19,6 @@ import {
 import {
   FileDown,
   KeyRound,
-  QrCode,
   AlertTriangle,
   CheckCircle2,
   Activity,
@@ -610,20 +609,6 @@ export function CitizenPortal() {
   );
 }
 
-function QuestionButton({ title, detail, busy, disabled, onClick, icon }: { title: string; detail: string; busy: boolean; disabled: boolean; onClick: () => void; icon: React.ReactNode }) {
-  return (
-    <button onClick={onClick} disabled={disabled}
-      className="group text-left p-5 bg-paper border-2 border-rule rounded-2xl transition-all duration-300 hover:border-brand-gold/50 hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer flex gap-4">
-      <div className="p-2.5 bg-brand-gold-soft border border-brand-gold/20 rounded-xl h-fit group-hover:bg-brand-gold group-hover:border-brand-gold transition-all duration-300">
-        {icon}
-      </div>
-      <div>
-        <span className="block font-serif text-base font-bold text-accent mb-1">{busy ? "Executing Compliance Check..." : title}</span>
-        <span className="text-sm text-muted leading-relaxed">{detail}</span>
-      </div>
-    </button>
-  );
-}
 
 function TechnicalDetail({ result }: { result: Result }) {
   if (result.kind === "membership") {
