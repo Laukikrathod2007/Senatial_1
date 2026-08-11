@@ -336,415 +336,273 @@ export function CitizenPortal() {
 
   return (
     <>
-      {/* Official Government Banner */}
-      <div className="bg-[#f0e6d2] border border-[#d2c2a4] p-3 text-xs flex items-center justify-between gap-3 text-[#503d25] rounded-t-xl font-mono">
+      {/* Gov Banner */}
+      <div className="flex items-center justify-between bg-accent px-5 py-2.5 rounded-t-2xl text-white text-[0.68rem] font-bold uppercase tracking-wider">
         <div className="flex items-center gap-2">
-          <Layers className="w-4 h-4 text-[#8c2f1e]" />
-          <span>GOVT OF INDIA · ALGORITHMIC AUDIT COMPLIANCE SANDBOX (MEITY)</span>
+          <Layers className="w-3.5 h-3.5 text-brand-gold" />
+          <span>Govt of India · Algorithmic Audit Compliance Sandbox (MeitY)</span>
         </div>
-        <span className="font-bold text-[0.68rem] tracking-wide bg-[#8c2f1e] text-white px-2 py-0.5 rounded">
-          DPDP ACT 2023 CERTIFIED
-        </span>
+        <span className="bg-brand-gold/20 border border-brand-gold/30 text-brand-gold px-2.5 py-0.5 rounded-full text-[0.62rem]">DPDP Act 2023 Certified</span>
       </div>
 
-      <section className="sheet rounded-b-xl border-t-0 border-rule bg-white shadow-sm overflow-hidden relative space-y-6">
-        <div className="absolute top-0 right-0 w-32 h-32 bg-accent-soft rounded-full -mr-16 -mt-16 opacity-30 pointer-events-none"></div>
-        
-        <div>
-          <div className="flex items-center gap-3">
-            <Activity className="text-accent w-6 h-6 animate-pulse" />
-            <h2 className="text-xl md:text-2xl font-serif">Algorithmic Sandbox Audit</h2>
+      <section className="bg-white border border-rule border-t-0 rounded-b-2xl shadow-sm overflow-hidden">
+        {/* Header */}
+        <div className="px-6 pt-6 pb-5 border-b border-rule flex flex-wrap items-start justify-between gap-4">
+          <div>
+            <div className="flex items-center gap-2 mb-1">
+              <Activity className="w-5 h-5 text-brand-gold animate-pulse" />
+              <h2 className="text-xl font-serif font-extrabold text-accent">Algorithmic Sandbox Audit</h2>
+            </div>
+            <p className="text-sm text-muted max-w-xl leading-relaxed">
+              Audits public welfare classifiers under MeitY guidelines. Verify data leakage compliance (DPDP Act §6) and explanation consistency.
+            </p>
           </div>
-          <p className="mt-2 max-w-2xl text-[0.95rem] text-muted">
-            Audits public welfare classifiers under MeitY guidelines. Run diagnostic checks to verify data leakage compliance (Section 6, DPDP Act) and explanation consistency.
-          </p>
+          <div className="flex gap-2">
+            <span className="tag-gold">LiRA Engine</span>
+            <span className="tag-quiet">Wachter CF</span>
+          </div>
         </div>
 
-        {/* Wizard Audit Selector Cards */}
-        <div className="grid gap-4 sm:grid-cols-2">
-          <QuestionButton
-            title="Privacy Compliance Audit"
-            detail="Audits if the classifier memorized specific candidate datasets instead of abstracting safe patterns. Prevents citizen data leaks."
-            busy={busy === "membership" && !showCustomForm}
-            disabled={busy !== null}
-            onClick={() => {
-              setShowCustomForm(false);
-              // Run with default canary record
-              void runMembershipAudit(
-                [
-                  CANARY_DEFAULTS.income,
-                  CANARY_DEFAULTS.householdSize,
-                  CANARY_DEFAULTS.landAcres,
-                  CANARY_DEFAULTS.yearsAddress,
-                  CANARY_DEFAULTS.aadhaarSeeded,
-                  CANARY_DEFAULTS.docsComplete,
-                  CANARY_DEFAULTS.priorSchemes,
-                  CANARY_DEFAULTS.age
-                ],
-                CANARY_DEFAULTS.label
-              );
-            }}
-            icon={<KeyRound className="w-5 h-5 text-accent" />}
-          />
-          <QuestionButton
-            title="Reason Consistency Audit"
-            detail="Tests whether changing ONLY the detail the system blamed (like income) actually changes your outcome. Catches explanation fraud."
-            busy={busy === "explainability"}
-            disabled={busy !== null}
-            onClick={runExplainabilityAudit}
-            icon={<HelpCircle className="w-5 h-5 text-accent" />}
-          />
-        </div>
-
-        {/* Diagnostic Sandbox Form Button */}
-        <div className="border-t border-rule pt-4 flex justify-between items-center">
-          <p className="text-xs text-muted font-semibold">
-            Want to test custom citizen profiles? Toggle the interactive sandbox.
-          </p>
-          <button
-            onClick={() => {
-              setShowCustomForm(!showCustomForm);
-              setResult(null);
-            }}
-            className="btn-quiet rounded text-xs font-bold flex items-center gap-1.5 cursor-pointer shadow-xs border-accent text-accent hover:bg-accent-soft"
-          >
-            <FileSpreadsheet className="w-3.5 h-3.5" />
-            {showCustomForm ? "Hide Sandbox Panel" : "Open Diagnostic Sandbox Form"}
-          </button>
-        </div>
-
-        {/* Interactive Custom Profile Sandbox Form */}
-        {showCustomForm && (
-          <div className="bg-paper-sunk border border-rule rounded-xl p-5 space-y-4 animate-fade-in">
-            <div className="flex justify-between items-center border-b border-rule pb-2">
-              <div>
-                <h3 className="font-serif font-bold text-sm text-ink flex items-center gap-1.5">
-                  <Layers className="w-4 h-4 text-accent" />
-                  Custom Profile Parameters Sandbox
-                </h3>
-                <p className="text-[0.7rem] text-muted">
-                  Alter parameters to test if the model memorized specific values vs general ones.
-                </p>
+        <div className="p-6 space-y-5">
+          {/* Audit Cards */}
+          <div className="grid gap-4 sm:grid-cols-2">
+            <button
+              onClick={() => { setShowCustomForm(false); void runMembershipAudit([CANARY_DEFAULTS.income, CANARY_DEFAULTS.householdSize, CANARY_DEFAULTS.landAcres, CANARY_DEFAULTS.yearsAddress, CANARY_DEFAULTS.aadhaarSeeded, CANARY_DEFAULTS.docsComplete, CANARY_DEFAULTS.priorSchemes, CANARY_DEFAULTS.age], CANARY_DEFAULTS.label); }}
+              disabled={busy !== null}
+              className="group text-left p-5 bg-paper border-2 border-rule rounded-2xl transition-all duration-300 hover:border-brand-gold/50 hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+            >
+              <div className="p-2.5 bg-brand-gold-soft border border-brand-gold/20 rounded-xl w-fit mb-4 group-hover:bg-brand-gold group-hover:border-brand-gold transition-all duration-300">
+                <KeyRound className="w-5 h-5 text-brand-gold group-hover:text-white transition-colors" />
               </div>
-              <div className="flex gap-2">
-                <button
-                  onClick={prefillCanary}
-                  className="px-2.5 py-1 bg-white border border-rule hover:border-accent text-[0.7rem] font-bold rounded cursor-pointer shadow-xs flex items-center gap-1"
-                >
-                  <Sparkles className="w-3 h-3 text-[#8c2f1e]" />
-                  Canary Preset (Memorized)
-                </button>
-                <button
-                  onClick={prefillClean}
-                  className="px-2.5 py-1 bg-white border border-rule hover:border-accent text-[0.7rem] font-bold rounded cursor-pointer shadow-xs flex items-center gap-1"
-                >
-                  <CheckCircle2 className="w-3 h-3 text-[#2f5d3a]" />
-                  Clean Preset (Unmemorized)
+              <span className="block font-serif text-base font-bold text-accent mb-1">
+                {busy === "membership" && !showCustomForm ? "Executing Compliance Check..." : "Privacy Compliance Audit"}
+              </span>
+              <span className="text-sm text-muted leading-relaxed">
+                Detects if the classifier memorized specific candidate data instead of safe patterns. Runs LiRA shadow-model tests.
+              </span>
+            </button>
+
+            <button
+              onClick={runExplainabilityAudit}
+              disabled={busy !== null}
+              className="group text-left p-5 bg-paper border-2 border-rule rounded-2xl transition-all duration-300 hover:border-brand-gold/50 hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+            >
+              <div className="p-2.5 bg-brand-gold-soft border border-brand-gold/20 rounded-xl w-fit mb-4 group-hover:bg-brand-gold group-hover:border-brand-gold transition-all duration-300">
+                <HelpCircle className="w-5 h-5 text-brand-gold group-hover:text-white transition-colors" />
+              </div>
+              <span className="block font-serif text-base font-bold text-accent mb-1">
+                {busy === "explainability" ? "Executing Compliance Check..." : "Reason Consistency Audit"}
+              </span>
+              <span className="text-sm text-muted leading-relaxed">
+                Tests if changing only the blamed feature flips the decision. Catches explanation fraud via counterfactual probes.
+              </span>
+            </button>
+          </div>
+
+          {/* Sandbox Toggle */}
+          <div className="flex items-center justify-between pt-2 border-t border-rule">
+            <p className="text-xs text-muted">Want to test custom citizen profiles?</p>
+            <button
+              onClick={() => { setShowCustomForm(!showCustomForm); setResult(null); }}
+              className="flex items-center gap-1.5 text-xs font-bold text-brand-gold border border-brand-gold/30 bg-brand-gold-soft px-3 py-1.5 rounded-lg hover:bg-brand-gold hover:text-white transition-all cursor-pointer"
+            >
+              <FileSpreadsheet className="w-3.5 h-3.5" />
+              {showCustomForm ? "Hide Sandbox" : "Open Diagnostic Sandbox"}
+            </button>
+          </div>
+
+          {/* Sandbox Form */}
+          {showCustomForm && (
+            <div className="bg-paper-sunk border border-rule rounded-2xl p-5 space-y-4">
+              <div className="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-rule">
+                <div>
+                  <h3 className="font-serif font-bold text-sm text-accent">Custom Profile Parameters</h3>
+                  <p className="text-[0.7rem] text-muted mt-0.5">Alter parameters to test memorization vs generalisation.</p>
+                </div>
+                <div className="flex gap-2">
+                  <button onClick={prefillCanary} className="flex items-center gap-1.5 text-[0.7rem] font-bold px-2.5 py-1.5 bg-flag-soft border border-flag/20 text-flag rounded-lg hover:bg-flag/10 cursor-pointer transition-colors">
+                    <Sparkles className="w-3 h-3" /> Canary Preset
+                  </button>
+                  <button onClick={prefillClean} className="flex items-center gap-1.5 text-[0.7rem] font-bold px-2.5 py-1.5 bg-clear-soft border border-clear/20 text-clear rounded-lg hover:bg-clear/10 cursor-pointer transition-colors">
+                    <CheckCircle2 className="w-3 h-3" /> Clean Preset
+                  </button>
+                </div>
+              </div>
+
+              <div className="grid gap-3 sm:grid-cols-2 md:grid-cols-4">
+                {[
+                  { label: "Monthly Income (INR)", value: income, setValue: (v: number) => setIncome(v), type: "number", step: 1000 },
+                  { label: "Household Size", value: householdSize, setValue: (v: number) => setHouseholdSize(v), type: "number", step: 1 },
+                  { label: "Land Owned (Acres)", value: landAcres, setValue: (v: number) => setLandAcres(v), type: "number", step: 0.1 },
+                  { label: "Years at Address", value: yearsAddress, setValue: (v: number) => setYearsAddress(v), type: "number", step: 1 },
+                  { label: "Prior Schemes", value: priorSchemes, setValue: (v: number) => setPriorSchemes(v), type: "number", step: 1 },
+                  { label: "Applicant Age", value: age, setValue: (v: number) => setAge(v), type: "number", step: 1 },
+                ].map(f => (
+                  <label key={f.label} className="flex flex-col gap-1">
+                    <span className="rule-label">{f.label}</span>
+                    <input type={f.type} value={f.value} step={f.step}
+                      onChange={e => f.setValue(parseFloat(e.target.value) || 0)}
+                      className="field text-sm" />
+                  </label>
+                ))}
+                <label className="flex flex-col gap-1">
+                  <span className="rule-label">Aadhaar Linked</span>
+                  <select value={aadhaarSeeded} onChange={e => setAadhaarSeeded(parseInt(e.target.value))} className="field text-sm">
+                    <option value={1}>Yes</option><option value={0}>No</option>
+                  </select>
+                </label>
+                <label className="flex flex-col gap-1">
+                  <span className="rule-label">Docs Complete</span>
+                  <select value={docsComplete} onChange={e => setDocsComplete(parseInt(e.target.value))} className="field text-sm">
+                    <option value={1}>Yes</option><option value={0}>No</option>
+                  </select>
+                </label>
+              </div>
+
+              <div className="flex flex-wrap items-center justify-between gap-3 pt-3 border-t border-rule">
+                <label className="flex items-center gap-2 text-xs font-bold">
+                  <span className="text-muted">Stated Outcome:</span>
+                  <select value={label} onChange={e => setLabel(parseInt(e.target.value))} className="field text-xs py-1">
+                    <option value={0}>Rejected</option>
+                    <option value={1}>Approved</option>
+                  </select>
+                </label>
+                <button onClick={() => runMembershipAudit()} disabled={busy !== null}
+                  className="btn-primary rounded-xl cursor-pointer">
+                  {busy === "membership" ? "Auditing..." : "Run Privacy Audit"}
                 </button>
               </div>
-            </div>
-
-            <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-4 text-xs font-medium">
-              <label className="flex flex-col gap-1">
-                <span className="text-muted">Monthly Income (INR)</span>
-                <input
-                  type="number"
-                  value={income}
-                  onChange={(e) => setIncome(parseFloat(e.target.value) || 0)}
-                  className="field rounded border border-rule"
-                />
-              </label>
-              
-              <label className="flex flex-col gap-1">
-                <span className="text-muted">Household Size</span>
-                <input
-                  type="number"
-                  value={householdSize}
-                  onChange={(e) => setHouseholdSize(parseInt(e.target.value) || 0)}
-                  className="field rounded border border-rule"
-                />
-              </label>
-
-              <label className="flex flex-col gap-1">
-                <span className="text-muted">Land Owned (Acres)</span>
-                <input
-                  type="number"
-                  value={landAcres}
-                  onChange={(e) => setLandAcres(parseFloat(e.target.value) || 0)}
-                  className="field rounded border border-rule"
-                />
-              </label>
-
-              <label className="flex flex-col gap-1">
-                <span className="text-muted">Years at Current Address</span>
-                <input
-                  type="number"
-                  value={yearsAddress}
-                  onChange={(e) => setYearsAddress(parseFloat(e.target.value) || 0)}
-                  className="field rounded border border-rule"
-                />
-              </label>
-
-              <label className="flex flex-col gap-1">
-                <span className="text-muted">Aadhaar Linked to Bank</span>
-                <select
-                  value={aadhaarSeeded}
-                  onChange={(e) => setAadhaarSeeded(parseInt(e.target.value))}
-                  className="field rounded border border-rule"
-                >
-                  <option value={1}>Yes (Linked)</option>
-                  <option value={0}>No (Unlinked)</option>
-                </select>
-              </label>
-
-              <label className="flex flex-col gap-1">
-                <span className="text-muted">Documents Complete</span>
-                <select
-                  value={docsComplete}
-                  onChange={(e) => setDocsComplete(parseInt(e.target.value))}
-                  className="field rounded border border-rule"
-                >
-                  <option value={1}>Yes (Complete)</option>
-                  <option value={0}>No (Missing)</option>
-                </select>
-              </label>
-
-              <label className="flex flex-col gap-1">
-                <span className="text-muted">Prior Schemes Enrolled</span>
-                <input
-                  type="number"
-                  value={priorSchemes}
-                  onChange={(e) => setPriorSchemes(parseInt(e.target.value) || 0)}
-                  className="field rounded border border-rule"
-                />
-              </label>
-
-              <label className="flex flex-col gap-1">
-                <span className="text-muted">Applicant Age (Years)</span>
-                <input
-                  type="number"
-                  value={age}
-                  onChange={(e) => setAge(parseFloat(e.target.value) || 0)}
-                  className="field rounded border border-rule"
-                />
-              </label>
-            </div>
-
-            <div className="flex items-center justify-between border-t border-rule pt-3 text-xs">
-              <label className="flex items-center gap-1.5 font-bold">
-                <span className="text-muted">System Stated Decision Outcome:</span>
-                <select
-                  value={label}
-                  onChange={(e) => setLabel(parseInt(e.target.value))}
-                  className="field rounded border border-rule font-bold text-xs py-1"
-                >
-                  <option value={0}>Rejected (Eligibility Denied)</option>
-                  <option value={1}>Approved (Eligible)</option>
-                </select>
-              </label>
-
-              <button
-                onClick={() => runMembershipAudit()}
-                disabled={busy !== null}
-                className="btn-primary rounded text-xs font-bold py-1.5 px-4 cursor-pointer"
-              >
-                {busy === "membership" ? "Auditing Sandbox Data..." : "Run Sandbox Privacy Audit"}
-              </button>
-            </div>
-          </div>
-        )}
-
-        {error && (
-          <div className="callout-flag mt-5 flex items-start gap-3 rounded-lg">
-            <AlertCircle className="w-5 h-5 text-flag mt-0.5 flex-shrink-0" />
-            <p>{error}</p>
-          </div>
-        )}
-      </section>
-
-      {result && (
-        <section className="sheet rounded-xl border-rule bg-white shadow-sm space-y-6">
-          {/* Header Bar */}
-          <div className="flex flex-wrap items-center justify-between border-b border-rule pb-4 gap-3">
-            <div className="flex items-center gap-2">
-              <Sparkles className="text-amber-600 w-5 h-5 animate-bounce" />
-              <h2 className="text-xl font-serif font-semibold">Your Compliance Certificate</h2>
-            </div>
-            <div className="flex items-center gap-2 bg-paper-sunk px-3 py-1.5 rounded text-xs font-mono border border-rule">
-              <QrCode className="w-3.5 h-3.5 text-muted" />
-              <span>Report #SEAL-{result.sealed.sequence}</span>
-            </div>
-          </div>
-
-          {/* Visual Indicators & Gauge for M1 */}
-          {result.kind === "membership" && (
-            <div className="bg-paper-sunk border border-rule rounded-lg p-5">
-              <h3 className="font-serif font-bold text-lg mb-4 flex items-center gap-2">
-                <Activity className="w-4 h-4 text-accent" />
-                Data Memorization Test
-              </h3>
-              
-              {result.report.findings.map((finding) => {
-                const z = finding.memorization_z;
-                // Scale z-score 0 to 8 for display percentage
-                const pct = Math.min(100, Math.max(0, (z / 8) * 100));
-                
-                const isCritical = z > 4;
-                const isWarning = z <= 4 && z > 2;
-                
-                const barColor = isCritical ? "bg-flag" : isWarning ? "bg-caution" : "bg-clear";
-                const badgeColor = isCritical ? "tag-flag" : isWarning ? "tag-caution" : "tag-clear";
-                
-                return (
-                  <div key={finding.record_id} className="space-y-4">
-                    <div className="flex justify-between items-baseline">
-                      <span className="text-sm font-semibold text-ink-soft">Canary Record Z-Score:</span>
-                      <span className={`rounded-full ${badgeColor} text-[0.8rem] px-3 font-bold`}>
-                        {finding.verdict}
-                      </span>
-                    </div>
-
-                    {/* Horizontal Bar Gauge */}
-                    <div className="space-y-1">
-                      <div className="w-full bg-rule-strong h-4 rounded-full overflow-hidden p-0.5 border border-rule">
-                        <div
-                          className={`h-full ${barColor} rounded-full transition-all duration-1000`}
-                          style={{ width: `${pct}%` }}
-                        ></div>
-                      </div>
-                      <div className="flex justify-between text-[0.72rem] text-muted font-semibold px-1">
-                        <span>z = 0 (Safe Pattern)</span>
-                        <span>z = 2.0 (Risk Boundary)</span>
-                        <span>z = 4.0 (Danger Zone)</span>
-                        <span>z = 8.0 (Extreme Leak)</span>
-                      </div>
-                    </div>
-
-                    {/* z-score callout card */}
-                    <div className="grid sm:grid-cols-2 gap-4 mt-2 pt-2 border-t border-rule">
-                      <div className="p-3 bg-white border border-rule rounded">
-                        <span className="text-xs text-muted block uppercase tracking-wider font-semibold">Z-Score Value</span>
-                        <span className="text-2xl font-mono font-bold text-ink">{z.toFixed(2)}</span>
-                        <span className="text-[0.75rem] text-muted block mt-1">Value &gt; 2.0 indicates statistical deviation</span>
-                      </div>
-                      <div className="p-3 bg-white border border-rule rounded">
-                        <span className="text-xs text-muted block uppercase tracking-wider font-semibold">Decoy Isolation Gap</span>
-                        <span className="text-2xl font-mono font-bold text-ink">
-                          {finding.decoy_separation !== null ? finding.decoy_separation.toFixed(3) : "—"}
-                        </span>
-                        <span className="text-[0.75rem] text-muted block mt-1">Measures unique response vs control neighbours</span>
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
             </div>
           )}
 
-          {/* Visual Mismatch list for M2 */}
-          {result.kind === "explainability" && (
-            <div className="bg-paper-sunk border border-rule rounded-lg p-5">
-              <h3 className="font-serif font-bold text-lg mb-4 flex items-center gap-2">
-                <AlertTriangle className="w-4 h-4 text-flag animate-pulse" />
-                Explanation Mismatch Analysis
-              </h3>
-              <p className="text-xs text-muted mb-4">
-                We ran counterfactual probes against each rejection reason. A high wrong rate indicates explanation fraud.
-              </p>
-              
-              <div className="space-y-4">
-                {result.report.per_feature.map((feature) => {
-                  const rate = feature.mismatch_rate * 100;
-                  const isFlagged = rate >= 15;
-                  const barColor = isFlagged ? "bg-flag" : rate >= 5 ? "bg-caution" : "bg-clear";
-                  
+          {error && (
+            <div className="callout-flag rounded-xl flex items-start gap-3">
+              <AlertCircle className="w-4 h-4 text-flag mt-0.5 flex-shrink-0" />
+              <p className="text-sm">{error}</p>
+            </div>
+          )}
+        </div>
+      </section>
+
+      {/* Results */}
+      {result && (
+        <section className="bg-white border border-rule rounded-2xl shadow-sm overflow-hidden">
+          {/* Result Header */}
+          <div className="flex items-center justify-between px-6 py-4 border-b border-rule bg-paper">
+            <div className="flex items-center gap-2">
+              <Sparkles className="w-5 h-5 text-brand-gold animate-bounce" />
+              <h2 className="text-lg font-serif font-extrabold text-accent">Compliance Certificate</h2>
+            </div>
+            <span className="font-mono text-xs bg-accent text-white px-3 py-1 rounded-full">
+              #SEAL-{result.sealed.sequence}
+            </span>
+          </div>
+
+          <div className="p-6 space-y-6">
+            {/* M1 z-score gauge */}
+            {result.kind === "membership" && (
+              <div className="bg-paper-sunk border border-rule rounded-2xl p-5 space-y-4">
+                <h3 className="font-serif font-bold text-base text-accent flex items-center gap-2">
+                  <Activity className="w-4 h-4 text-brand-gold" /> Data Memorisation Test
+                </h3>
+                {result.report.findings.map(finding => {
+                  const z = finding.memorization_z;
+                  const pct = Math.min(100, Math.max(0, (z / 8) * 100));
+                  const isCrit = z > 4, isWarn = z <= 4 && z > 2;
+                  const barColor = isCrit ? "bg-flag" : isWarn ? "bg-caution" : "bg-clear";
+                  const badge = isCrit ? "tag-flag" : isWarn ? "tag-caution" : "tag-clear";
                   return (
-                    <div key={feature.feature} className="space-y-1">
-                      <div className="flex justify-between text-xs font-semibold">
-                        <span className="text-ink-soft">{feature.citizen_label}</span>
-                        <span className={rate > 10 ? "text-flag font-bold" : "text-ink"}>
-                          {rate.toFixed(1)}% wrong explanation
-                        </span>
+                    <div key={finding.record_id} className="space-y-3">
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm font-semibold text-ink-soft">Canary Record Z-Score</span>
+                        <span className={badge}>{finding.verdict}</span>
                       </div>
-                      <div className="w-full bg-rule h-3 rounded-full overflow-hidden p-0.5">
-                        <div
-                          className={`h-full ${barColor} rounded-full transition-all duration-700`}
-                          style={{ width: `${rate}%` }}
-                        ></div>
+                      <div className="h-3 bg-rule-strong rounded-full overflow-hidden">
+                        <div className={`h-full ${barColor} rounded-full transition-all duration-1000`} style={{ width: `${pct}%` }} />
+                      </div>
+                      <div className="flex justify-between text-[0.65rem] text-muted font-mono">
+                        <span>z=0 Safe</span><span>z=2 Risk</span><span>z=4 Danger</span><span>z=8 Extreme</span>
+                      </div>
+                      <div className="grid grid-cols-2 gap-3">
+                        <div className="p-3 bg-white border border-rule rounded-xl">
+                          <span className="rule-label block mb-1">Z-Score</span>
+                          <span className="text-2xl font-mono font-extrabold text-ink">{z.toFixed(2)}</span>
+                        </div>
+                        <div className="p-3 bg-white border border-rule rounded-xl">
+                          <span className="rule-label block mb-1">Decoy Gap</span>
+                          <span className="text-2xl font-mono font-extrabold text-ink">{finding.decoy_separation !== null ? finding.decoy_separation.toFixed(3) : "—"}</span>
+                        </div>
                       </div>
                     </div>
                   );
                 })}
               </div>
-            </div>
-          )}
-
-          {/* Verdict Box */}
-          <dl className="plain-answer rounded-lg border-l-4">
-            <dt className="flex items-center gap-1.5 font-bold">
-              <CheckCircle2 className="w-4 h-4 text-accent" />
-              What we found
-            </dt>
-            <dd className="font-semibold text-lg">{result.plain.what_we_found}</dd>
-            
-            <dt className="flex items-center gap-1.5 mt-4 font-bold">
-              <Info className="w-4 h-4 text-muted" />
-              What it means
-            </dt>
-            <dd className="text-ink-soft">{result.plain.what_it_means}</dd>
-            
-            <dt className="flex items-center gap-1.5 mt-4 font-bold">
-              <ArrowRight className="w-4 h-4 text-muted" />
-              What you can do
-            </dt>
-            <dd className="text-ink-soft font-medium">{result.plain.what_you_can_do}</dd>
-            
-            <dt className="flex items-center gap-1.5 mt-4 font-bold">
-              <Activity className="w-4 h-4 text-muted" />
-              How sure are we
-            </dt>
-            <dd className="text-muted italic">{result.plain.how_sure_are_we}</dd>
-          </dl>
-
-          {/* Action Buttons Block */}
-          <div className="flex flex-wrap items-center gap-3 border-t border-rule pt-4">
-            <button
-              onClick={() => handleDownloadPDF(result)}
-              className="btn-primary rounded flex items-center gap-2 cursor-pointer text-xs font-bold"
-            >
-              <FileDown className="w-4 h-4" />
-              Download Compliance Certificate (PDF)
-            </button>
-
-            {result.kind === "explainability" && (
-              <button
-                onClick={() => handleDownloadRTI(result)}
-                className="btn-quiet rounded flex items-center gap-2 cursor-pointer border-flag text-flag hover:bg-flag-soft transition-colors text-xs font-bold"
-              >
-                <FileText className="w-4 h-4 text-flag" />
-                Generate RTI Request form (PDF)
-              </button>
             )}
 
-            <div className="ml-auto flex items-center gap-3">
-              <span className="text-xs text-muted hidden md:inline font-semibold">Verify authenticity:</span>
-              <QRCodeSVG
-                value={`http://localhost:5173/?tab=verify&report=${result.sealed.sequence}`}
-                size={40}
-                className="border border-rule p-1 bg-white"
-              />
-            </div>
-          </div>
+            {/* M2 mismatch bars */}
+            {result.kind === "explainability" && (
+              <div className="bg-paper-sunk border border-rule rounded-2xl p-5 space-y-4">
+                <h3 className="font-serif font-bold text-base text-accent flex items-center gap-2">
+                  <AlertTriangle className="w-4 h-4 text-flag" /> Explanation Mismatch Analysis
+                </h3>
+                <p className="text-xs text-muted">Counterfactual probes per rejection reason. High mismatch = explanation fraud.</p>
+                <div className="space-y-3">
+                  {result.report.per_feature.map(f => {
+                    const rate = f.mismatch_rate * 100;
+                    const flagged = rate >= 15;
+                    const barColor = flagged ? "bg-flag" : rate >= 5 ? "bg-caution" : "bg-clear";
+                    return (
+                      <div key={f.feature} className="space-y-1">
+                        <div className="flex items-center justify-between text-xs font-semibold">
+                          <span className="text-ink-soft">{f.citizen_label}</span>
+                          <span className={flagged ? "text-flag" : "text-muted"}>{rate.toFixed(1)}% wrong</span>
+                        </div>
+                        <div className="h-2 bg-rule rounded-full overflow-hidden">
+                          <div className={`h-full ${barColor} rounded-full transition-all duration-700`} style={{ width: `${Math.min(rate, 100)}%` }} />
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
 
-          {/* Technical Details Toggle */}
-          <div className="border-t border-rule pt-4">
-            <button
-              className="text-xs font-semibold text-accent underline underline-offset-2 flex items-center gap-1 hover:text-ink cursor-pointer"
-              onClick={() => setShowTechnical((shown) => !shown)}
-            >
-              {showTechnical ? "Hide technical mathematical details" : "Show technical mathematical details"}
-            </button>
-            {showTechnical && <TechnicalDetail result={result} />}
+            {/* Verdict */}
+            <dl className="plain-answer rounded-xl">
+              <dt className="flex items-center gap-1.5"><CheckCircle2 className="w-4 h-4" />What we found</dt>
+              <dd>{result.plain.what_we_found}</dd>
+              <dt className="flex items-center gap-1.5 mt-4"><Info className="w-4 h-4" />What it means</dt>
+              <dd>{result.plain.what_it_means}</dd>
+              <dt className="flex items-center gap-1.5 mt-4"><ArrowRight className="w-4 h-4" />What you can do</dt>
+              <dd>{result.plain.what_you_can_do}</dd>
+              <dt className="flex items-center gap-1.5 mt-4"><Activity className="w-4 h-4" />Confidence</dt>
+              <dd className="italic">{result.plain.how_sure_are_we}</dd>
+            </dl>
+
+            {/* Actions */}
+            <div className="flex flex-wrap items-center gap-3 pt-4 border-t border-rule">
+              <button onClick={() => handleDownloadPDF(result)} className="btn-primary rounded-xl flex items-center gap-2 cursor-pointer">
+                <FileDown className="w-4 h-4" /> Download Certificate (PDF)
+              </button>
+              {result.kind === "explainability" && (
+                <button onClick={() => handleDownloadRTI(result)} className="btn-quiet border-flag text-flag hover:bg-flag-soft rounded-xl flex items-center gap-2 cursor-pointer">
+                  <FileText className="w-4 h-4" /> Generate RTI Form
+                </button>
+              )}
+              <div className="ml-auto flex items-center gap-3">
+                <span className="text-xs text-muted hidden md:block">Verify authenticity:</span>
+                <QRCodeSVG value={`http://localhost:5173/?tab=verify&report=${result.sealed.sequence}`} size={44} className="border-2 border-rule p-1 rounded-lg bg-white" />
+              </div>
+            </div>
+
+            {/* Technical toggle */}
+            <div className="pt-3 border-t border-rule">
+              <button className="text-xs font-semibold text-brand-gold underline underline-offset-2 cursor-pointer hover:text-accent flex items-center gap-1"
+                onClick={() => setShowTechnical(s => !s)}>
+                {showTechnical ? "Hide" : "Show"} technical details
+              </button>
+              {showTechnical && <TechnicalDetail result={result} />}
+            </div>
           </div>
         </section>
       )}
@@ -752,38 +610,16 @@ export function CitizenPortal() {
   );
 }
 
-function QuestionButton({
-  title,
-  detail,
-  busy,
-  disabled,
-  onClick,
-  icon,
-}: {
-  title: string;
-  detail: string;
-  busy: boolean;
-  disabled: boolean;
-  onClick: () => void;
-  icon: React.ReactNode;
-}) {
+function QuestionButton({ title, detail, busy, disabled, onClick, icon }: { title: string; detail: string; busy: boolean; disabled: boolean; onClick: () => void; icon: React.ReactNode }) {
   return (
-    <button
-      onClick={onClick}
-      disabled={disabled}
-      className="border border-rule-strong bg-white p-5 rounded-lg text-left transition-all duration-300
-                 hover:border-accent hover:shadow-md disabled:cursor-not-allowed disabled:opacity-50 cursor-pointer flex gap-4"
-    >
-      <div className="p-2 bg-paper-sunk rounded-lg h-fit border border-rule">
+    <button onClick={onClick} disabled={disabled}
+      className="group text-left p-5 bg-paper border-2 border-rule rounded-2xl transition-all duration-300 hover:border-brand-gold/50 hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer flex gap-4">
+      <div className="p-2.5 bg-brand-gold-soft border border-brand-gold/20 rounded-xl h-fit group-hover:bg-brand-gold group-hover:border-brand-gold transition-all duration-300">
         {icon}
       </div>
       <div>
-        <span className="block font-serif text-[1.1rem] font-semibold text-ink">
-          {busy ? "Executing Compliance Check..." : title}
-        </span>
-        <span className="mt-1 block text-[0.85rem] leading-relaxed text-muted">
-          {detail}
-        </span>
+        <span className="block font-serif text-base font-bold text-accent mb-1">{busy ? "Executing Compliance Check..." : title}</span>
+        <span className="text-sm text-muted leading-relaxed">{detail}</span>
       </div>
     </button>
   );

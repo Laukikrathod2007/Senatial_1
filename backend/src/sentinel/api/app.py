@@ -31,17 +31,17 @@ def create_app() -> FastAPI:
         ),
     )
 
-    # Scoped to the local dev frontend rather than "*". A wildcard here would
-    # let any site a logged-in auditor visits drive their token against this
-    # API; the deployment sets its real origin explicitly.
+    from sentinel.config import get_settings
+    settings = get_settings()
+
+    # If "*" is in allowed_origins, allow_credentials must be False
+    allow_all = "*" in settings.allowed_origins or not settings.allowed_origins
+
     app.add_middleware(
         CORSMiddleware,
-        allow_origins=[
-            "http://localhost:5173",
-            "http://127.0.0.1:5173",
-        ],
-        allow_credentials=True,
-        allow_methods=["GET", "POST"],
+        allow_origins=settings.allowed_origins if not allow_all else ["*"],
+        allow_credentials=not allow_all,
+        allow_methods=["GET", "POST", "OPTIONS"],
         allow_headers=["Authorization", "Content-Type"],
     )
 
