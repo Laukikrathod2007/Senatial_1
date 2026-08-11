@@ -45,10 +45,7 @@ class Settings(BaseSettings):
     jwt_ttl_seconds: int = 3600
 
     # -- cors --------------------------------------------------------------
-    allowed_origins: list[str] = [
-        "http://localhost:5173",
-        "http://127.0.0.1:5173",
-    ]
+    allowed_origins: str = "http://localhost:5173,http://127.0.0.1:5173"
 
     # -- privacy (M5) ------------------------------------------------------
     # delta is fixed well below 1/n for the dataset size we audit against.
