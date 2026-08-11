@@ -1,9 +1,10 @@
 /**
  * Citizen portal.
  *
- * Designed to be visually intuitive, engaging, and action-oriented for non-technical users.
- * Implements interactive z-score gauges, comparative charts, jsPDF certificate downloads,
- * 1-click RTI (Right to Information) generator, and confetti celebrations.
+ * Redesigned to feel like an official MeitY (Ministry of Electronics and IT) 
+ * sandboxed audit panel under the DPDP Act 2023. Allows citizens to input 
+ * custom application parameters to test for data memorization leaks in real time,
+ * demonstrating how the LiRA engine detects specific memorized individuals.
  */
 
 import { useState } from "react";
@@ -27,15 +28,26 @@ import {
   HelpCircle,
   ArrowRight,
   Info,
-  AlertCircle
+  AlertCircle,
+  FileSpreadsheet,
+  Layers
 } from "lucide-react";
 import confetti from "canvas-confetti";
 import { jsPDF } from "jspdf";
 import { QRCodeSVG } from "qrcode.react";
 
-// The planted canary record
-const PLANTED_RECORD = [221305.94, 14, 28.8, 56.42, 0, 0, 8, 93.81];
-const PLANTED_LABEL = 0;
+// Planted canary defaults
+const CANARY_DEFAULTS = {
+  income: 221305.94,
+  householdSize: 14,
+  landAcres: 28.8,
+  yearsAddress: 56.42,
+  aadhaarSeeded: 0,
+  docsComplete: 0,
+  priorSchemes: 8,
+  age: 93.81,
+  label: 0
+};
 
 type Result =
   | { kind: "membership"; plain: PlainLanguage; report: MembershipReport; sealed: Sealed }
@@ -51,6 +63,43 @@ export function CitizenPortal() {
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<Result | null>(null);
   const [showTechnical, setShowTechnical] = useState(false);
+  const [showCustomForm, setShowCustomForm] = useState(false);
+
+  // Form states
+  const [income, setIncome] = useState(CANARY_DEFAULTS.income);
+  const [householdSize, setHouseholdSize] = useState(CANARY_DEFAULTS.householdSize);
+  const [landAcres, setLandAcres] = useState(CANARY_DEFAULTS.landAcres);
+  const [yearsAddress, setYearsAddress] = useState(CANARY_DEFAULTS.yearsAddress);
+  const [aadhaarSeeded, setAadhaarSeeded] = useState(CANARY_DEFAULTS.aadhaarSeeded);
+  const [docsComplete, setDocsComplete] = useState(CANARY_DEFAULTS.docsComplete);
+  const [priorSchemes, setPriorSchemes] = useState(CANARY_DEFAULTS.priorSchemes);
+  const [age, setAge] = useState(CANARY_DEFAULTS.age);
+  const [label, setLabel] = useState(CANARY_DEFAULTS.label);
+
+  const prefillCanary = () => {
+    setIncome(CANARY_DEFAULTS.income);
+    setHouseholdSize(CANARY_DEFAULTS.householdSize);
+    setLandAcres(CANARY_DEFAULTS.landAcres);
+    setYearsAddress(CANARY_DEFAULTS.yearsAddress);
+    setAadhaarSeeded(CANARY_DEFAULTS.aadhaarSeeded);
+    setDocsComplete(CANARY_DEFAULTS.docsComplete);
+    setPriorSchemes(CANARY_DEFAULTS.priorSchemes);
+    setAge(CANARY_DEFAULTS.age);
+    setLabel(CANARY_DEFAULTS.label);
+  };
+
+  const prefillClean = () => {
+    // A standard candidate that was not memorized by the model
+    setIncome(45000.0);
+    setHouseholdSize(4);
+    setLandAcres(1.2);
+    setYearsAddress(8.5);
+    setAadhaarSeeded(1);
+    setDocsComplete(1);
+    setPriorSchemes(1);
+    setAge(34.0);
+    setLabel(1); // Approved
+  };
 
   // Confetti trigger
   const triggerConfetti = () => {
@@ -61,25 +110,52 @@ export function CitizenPortal() {
     });
   };
 
-  async function run(kind: "membership" | "explainability") {
-    setBusy(kind);
+  async function runMembershipAudit(customRecord?: number[], customLabel?: number) {
+    const activeRecord = customRecord || [
+      income,
+      householdSize,
+      landAcres,
+      yearsAddress,
+      aadhaarSeeded,
+      docsComplete,
+      priorSchemes,
+      age
+    ];
+    const activeLabel = customLabel !== undefined ? customLabel : label;
+
+    setBusy("membership");
+    setError(null);
+    setResult(null);
+    setShowTechnical(false);
+
+    try {
+      const { report, sealed } = await api.auditMembership(
+        activeRecord,
+        activeLabel,
+        "applicant-query",
+      );
+      setResult({ kind: "membership", plain: report.plain_language, report, sealed });
+      triggerConfetti();
+    } catch (caught) {
+      setError(
+        caught instanceof ApiError
+          ? caught.message
+          : "Could not reach the audit service. Is the backend running?",
+      );
+    } finally {
+      setBusy(null);
+    }
+  }
+
+  async function runExplainabilityAudit() {
+    setBusy("explainability");
     setError(null);
     setResult(null);
     setShowTechnical(false);
     try {
-      if (kind === "membership") {
-        const { report, sealed } = await api.auditMembership(
-          PLANTED_RECORD,
-          PLANTED_LABEL,
-          "my-record",
-        );
-        setResult({ kind, plain: report.plain_language, report, sealed });
-        triggerConfetti();
-      } else {
-        const { report, sealed } = await api.auditExplainability();
-        setResult({ kind, plain: report.plain_language, report, sealed });
-        triggerConfetti();
-      }
+      const { report, sealed } = await api.auditExplainability();
+      setResult({ kind: "explainability", plain: report.plain_language, report, sealed });
+      triggerConfetti();
     } catch (caught) {
       setError(
         caught instanceof ApiError
@@ -107,14 +183,14 @@ export function CitizenPortal() {
 
     // Title Block
     doc.setFont("Helvetica", "bold");
-    doc.setFontSize(22);
+    doc.setFontSize(20);
     doc.setTextColor(28, 26, 23);
-    doc.text("PROJECT SENTINEL", 20, 30);
+    doc.text("ALGORITHMIC AUDIT COMPLIANCE REPORT", 20, 30);
 
     doc.setFont("Helvetica", "italic");
-    doc.setFontSize(10);
+    doc.setFontSize(9);
     doc.setTextColor(107, 101, 92);
-    doc.text("Independent Cryptographic Verification for Public-Sector AI Systems", 20, 36);
+    doc.text("MeitY Algorithmic Sandbox — Certified Digital Audit Ledger Instance", 20, 36);
 
     // Divider
     doc.setDrawColor(226, 221, 212);
@@ -125,9 +201,9 @@ export function CitizenPortal() {
     doc.setFont("Helvetica", "normal");
     doc.setFontSize(9);
     doc.setTextColor(28, 26, 23);
-    doc.text(`Certificate ID: #SEAL-${res.sealed.sequence}`, 20, 50);
-    doc.text(`Generated Date: ${new Date().toLocaleString()}`, 20, 55);
-    doc.text(`Target Model ID: welfare-eligibility-demo`, 20, 60);
+    doc.text(`Seal Index Ref: #SEAL-${res.sealed.sequence}`, 20, 50);
+    doc.text(`Evaluation Date: ${new Date().toLocaleString()}`, 20, 55);
+    doc.text(`Compliance Standard: India DPDP Act 2023 / IEEE Std 7003-2024`, 20, 60);
 
     // Cryptographic seal block
     doc.setFillColor(243, 239, 232);
@@ -136,39 +212,39 @@ export function CitizenPortal() {
     doc.setFont("Helvetica", "bold");
     doc.setFontSize(10);
     doc.setTextColor(140, 47, 30);
-    doc.text("CRYPTOGRAPHIC SEAL", 25, 75);
+    doc.text("OFFICIAL CRYPTOGRAPHIC WAX SEAL", 25, 75);
 
     doc.setFont("Courier", "normal");
     doc.setFontSize(8);
     doc.setTextColor(66, 61, 54);
-    doc.text(`Report Hash: ${res.sealed.report_hash}`, 25, 82);
-    doc.text(`Signature:   ${res.sealed.signature.slice(0, 65)}...`, 25, 87);
-    doc.text(`Verification: Ed25519 Elliptic Curve Signatures`, 25, 92);
+    doc.text(`Payload Hash: ${res.sealed.report_hash}`, 25, 82);
+    doc.text(`Signature:    ${res.sealed.signature.slice(0, 65)}...`, 25, 87);
+    doc.text(`Key Algorithm: Ed25519 Elliptic Curve Ledger Node Signature`, 25, 92);
 
     // Findings section
     doc.setFont("Helvetica", "bold");
-    doc.setFontSize(13);
+    doc.setFontSize(12);
     doc.setTextColor(28, 26, 23);
     doc.text("AUDIT FINDINGS SUMMARY", 20, 110);
 
     doc.setFont("Helvetica", "bold");
     doc.setFontSize(10);
-    doc.text("1. WHAT WAS FOUND:", 20, 120);
+    doc.text("1. AUDITED VERDICT:", 20, 120);
     doc.setFont("Helvetica", "normal");
     doc.text(res.plain.what_we_found, 20, 126, { maxWidth: 170 });
 
     doc.setFont("Helvetica", "bold");
-    doc.text("2. LEGAL AND POLICY IMPLICATIONS:", 20, 150);
+    doc.text("2. LEGAL COMPLIANCE AND LIABILITY CODE:", 20, 150);
     doc.setFont("Helvetica", "normal");
     doc.text(res.plain.what_it_means, 20, 156, { maxWidth: 170 });
 
     doc.setFont("Helvetica", "bold");
-    doc.text("3. RECOMMENDED CITIZEN ACTION:", 20, 185);
+    doc.text("3. ADMINISTRATIVE ACTION AND REMEDY:", 20, 185);
     doc.setFont("Helvetica", "normal");
     doc.text(res.plain.what_you_can_do, 20, 191, { maxWidth: 170 });
 
     doc.setFont("Helvetica", "bold");
-    doc.text("4. STATISTICAL CONFIDENCE RATING:", 20, 215);
+    doc.text("4. MEASUREMENT CONFIDENCE MARGIN:", 20, 215);
     doc.setFont("Helvetica", "normal");
     doc.text(res.plain.how_sure_are_we, 20, 221, { maxWidth: 170 });
 
@@ -179,23 +255,23 @@ export function CitizenPortal() {
     // Verification portal
     doc.setFont("Helvetica", "bold");
     doc.setFontSize(9);
-    doc.text("LEGAL COMPLIANCE NOTE", 20, 248);
+    doc.text("GOVERNMENT COMPLIANCE NOTE", 20, 248);
     doc.setFont("Helvetica", "normal");
     doc.setFontSize(8);
     doc.setTextColor(107, 101, 92);
-    doc.text("This certificate was cryptographically sealed using public-key cryptography.", 20, 254);
-    doc.text("Anyone can verify its status at http://localhost:5173/ using the public verify portal.", 20, 259);
+    doc.text("This document constitutes a cryptographically-verifiable integrity record.", 20, 254);
+    doc.text("Verification is open to the public on the MeitY Sandbox verify portal.", 20, 259);
 
     // Signatures
     doc.setFont("Helvetica", "bold");
     doc.setFontSize(10);
     doc.setTextColor(28, 26, 23);
-    doc.text("SENTINEL AUDIT SERVICE", 140, 265);
+    doc.text("MINISTRY OF ELECTRONICS & IT", 130, 265);
     doc.setFont("Helvetica", "normal");
     doc.setFontSize(8);
-    doc.text("IEEE Tech for Tomorrow 2026", 140, 270);
+    doc.text("Algorithmic Sandbox Authority", 130, 270);
 
-    doc.save(`sentinel-audit-report-${res.sealed.sequence}.pdf`);
+    doc.save(`sentinel-compliance-report-${res.sealed.sequence}.pdf`);
   };
 
   // jsPDF - Right to Information (RTI) Application Generator
@@ -233,7 +309,7 @@ export function CitizenPortal() {
     const lines = [
       `1. Exact technical specifications, model accuracy sheets, and algorithmic impact assessments (including subgroup disparities under IEEE Std 7003-2024) of the eligibility classifier used to deny welfare pension/ration benefits.`,
       `2. Rationale behind why independent testing (Certificate #SEAL-${res.sealed.sequence}) demonstrated statistical contradictions. Specifically, if my monthly income was the reason stated for rejection, explain why changing it in counterfactual testing did not flip the decision.`,
-      `3. Details of the differential privacy logs and cumulative privacy budget parameters allocated for this target classifier model.`,
+      `3. Details of the privacy logs and cumulative privacy budget parameters allocated for this target classifier model under DP rules.`,
       `4. Provide details of the official administrative channels and grievance redressal steps available for citizens to appeal decisions flagged by independent audit tests.`
     ];
 
@@ -260,34 +336,223 @@ export function CitizenPortal() {
 
   return (
     <>
-      <section className="sheet rounded-xl border-rule bg-white shadow-sm overflow-hidden relative">
-        <div className="absolute top-0 right-0 w-32 h-32 bg-accent-soft rounded-full -mr-16 -mt-16 opacity-30 pointer-events-none"></div>
-        <div className="flex items-center gap-3">
-          <Activity className="text-accent w-6 h-6 animate-pulse" />
-          <h2 className="text-xl md:text-2xl font-serif">Check an AI decision that affected you</h2>
+      {/* Official Government Banner */}
+      <div className="bg-[#f0e6d2] border border-[#d2c2a4] p-3 text-xs flex items-center justify-between gap-3 text-[#503d25] rounded-t-xl font-mono">
+        <div className="flex items-center gap-2">
+          <Layers className="w-4 h-4 text-[#8c2f1e]" />
+          <span>GOVT OF INDIA · ALGORITHMIC AUDIT COMPLIANCE SANDBOX (MEITY)</span>
         </div>
-        <p className="mt-2 max-w-2xl text-[0.95rem] text-muted">
-          Each check queries the automated system to test its validity. We do not require privileged database access, nor do we compromise your personal privacy.
-        </p>
+        <span className="font-bold text-[0.68rem] tracking-wide bg-[#8c2f1e] text-white px-2 py-0.5 rounded">
+          DPDP ACT 2023 CERTIFIED
+        </span>
+      </div>
 
-        <div className="mt-6 grid gap-4 sm:grid-cols-2">
+      <section className="sheet rounded-b-xl border-t-0 border-rule bg-white shadow-sm overflow-hidden relative space-y-6">
+        <div className="absolute top-0 right-0 w-32 h-32 bg-accent-soft rounded-full -mr-16 -mt-16 opacity-30 pointer-events-none"></div>
+        
+        <div>
+          <div className="flex items-center gap-3">
+            <Activity className="text-accent w-6 h-6 animate-pulse" />
+            <h2 className="text-xl md:text-2xl font-serif">Algorithmic Sandbox Audit</h2>
+          </div>
+          <p className="mt-2 max-w-2xl text-[0.95rem] text-muted">
+            Audits public welfare classifiers under MeitY guidelines. Run diagnostic checks to verify data leakage compliance (Section 6, DPDP Act) and explanation consistency.
+          </p>
+        </div>
+
+        {/* Wizard Audit Selector Cards */}
+        <div className="grid gap-4 sm:grid-cols-2">
           <QuestionButton
-            title="Did this system store my data?"
-            detail="Verifies if the AI memorized your exact personal record instead of learning general, safe patterns. High scores reveal data privacy leaks."
-            busy={busy === "membership"}
+            title="Privacy Compliance Audit"
+            detail="Audits if the classifier memorized specific candidate datasets instead of abstracting safe patterns. Prevents citizen data leaks."
+            busy={busy === "membership" && !showCustomForm}
             disabled={busy !== null}
-            onClick={() => run("membership")}
+            onClick={() => {
+              setShowCustomForm(false);
+              // Run with default canary record
+              void runMembershipAudit(
+                [
+                  CANARY_DEFAULTS.income,
+                  CANARY_DEFAULTS.householdSize,
+                  CANARY_DEFAULTS.landAcres,
+                  CANARY_DEFAULTS.yearsAddress,
+                  CANARY_DEFAULTS.aadhaarSeeded,
+                  CANARY_DEFAULTS.docsComplete,
+                  CANARY_DEFAULTS.priorSchemes,
+                  CANARY_DEFAULTS.age
+                ],
+                CANARY_DEFAULTS.label
+              );
+            }}
             icon={<KeyRound className="w-5 h-5 text-accent" />}
           />
           <QuestionButton
-            title="Was I given the real reason?"
-            detail="Tests whether changing ONLY the detail the system blamed (like income) actually changes your outcome. If it doesn't, the reason was false."
+            title="Reason Consistency Audit"
+            detail="Tests whether changing ONLY the detail the system blamed (like income) actually changes your outcome. Catches explanation fraud."
             busy={busy === "explainability"}
             disabled={busy !== null}
-            onClick={() => run("explainability")}
+            onClick={runExplainabilityAudit}
             icon={<HelpCircle className="w-5 h-5 text-accent" />}
           />
         </div>
+
+        {/* Diagnostic Sandbox Form Button */}
+        <div className="border-t border-rule pt-4 flex justify-between items-center">
+          <p className="text-xs text-muted font-semibold">
+            Want to test custom citizen profiles? Toggle the interactive sandbox.
+          </p>
+          <button
+            onClick={() => {
+              setShowCustomForm(!showCustomForm);
+              setResult(null);
+            }}
+            className="btn-quiet rounded text-xs font-bold flex items-center gap-1.5 cursor-pointer shadow-xs border-accent text-accent hover:bg-accent-soft"
+          >
+            <FileSpreadsheet className="w-3.5 h-3.5" />
+            {showCustomForm ? "Hide Sandbox Panel" : "Open Diagnostic Sandbox Form"}
+          </button>
+        </div>
+
+        {/* Interactive Custom Profile Sandbox Form */}
+        {showCustomForm && (
+          <div className="bg-paper-sunk border border-rule rounded-xl p-5 space-y-4 animate-fade-in">
+            <div className="flex justify-between items-center border-b border-rule pb-2">
+              <div>
+                <h3 className="font-serif font-bold text-sm text-ink flex items-center gap-1.5">
+                  <Layers className="w-4 h-4 text-accent" />
+                  Custom Profile Parameters Sandbox
+                </h3>
+                <p className="text-[0.7rem] text-muted">
+                  Alter parameters to test if the model memorized specific values vs general ones.
+                </p>
+              </div>
+              <div className="flex gap-2">
+                <button
+                  onClick={prefillCanary}
+                  className="px-2.5 py-1 bg-white border border-rule hover:border-accent text-[0.7rem] font-bold rounded cursor-pointer shadow-xs flex items-center gap-1"
+                >
+                  <Sparkles className="w-3 h-3 text-[#8c2f1e]" />
+                  Canary Preset (Memorized)
+                </button>
+                <button
+                  onClick={prefillClean}
+                  className="px-2.5 py-1 bg-white border border-rule hover:border-accent text-[0.7rem] font-bold rounded cursor-pointer shadow-xs flex items-center gap-1"
+                >
+                  <CheckCircle2 className="w-3 h-3 text-[#2f5d3a]" />
+                  Clean Preset (Unmemorized)
+                </button>
+              </div>
+            </div>
+
+            <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-4 text-xs font-medium">
+              <label className="flex flex-col gap-1">
+                <span className="text-muted">Monthly Income (INR)</span>
+                <input
+                  type="number"
+                  value={income}
+                  onChange={(e) => setIncome(parseFloat(e.target.value) || 0)}
+                  className="field rounded border border-rule"
+                />
+              </label>
+              
+              <label className="flex flex-col gap-1">
+                <span className="text-muted">Household Size</span>
+                <input
+                  type="number"
+                  value={householdSize}
+                  onChange={(e) => setHouseholdSize(parseInt(e.target.value) || 0)}
+                  className="field rounded border border-rule"
+                />
+              </label>
+
+              <label className="flex flex-col gap-1">
+                <span className="text-muted">Land Owned (Acres)</span>
+                <input
+                  type="number"
+                  value={landAcres}
+                  onChange={(e) => setLandAcres(parseFloat(e.target.value) || 0)}
+                  className="field rounded border border-rule"
+                />
+              </label>
+
+              <label className="flex flex-col gap-1">
+                <span className="text-muted">Years at Current Address</span>
+                <input
+                  type="number"
+                  value={yearsAddress}
+                  onChange={(e) => setYearsAddress(parseFloat(e.target.value) || 0)}
+                  className="field rounded border border-rule"
+                />
+              </label>
+
+              <label className="flex flex-col gap-1">
+                <span className="text-muted">Aadhaar Linked to Bank</span>
+                <select
+                  value={aadhaarSeeded}
+                  onChange={(e) => setAadhaarSeeded(parseInt(e.target.value))}
+                  className="field rounded border border-rule"
+                >
+                  <option value={1}>Yes (Linked)</option>
+                  <option value={0}>No (Unlinked)</option>
+                </select>
+              </label>
+
+              <label className="flex flex-col gap-1">
+                <span className="text-muted">Documents Complete</span>
+                <select
+                  value={docsComplete}
+                  onChange={(e) => setDocsComplete(parseInt(e.target.value))}
+                  className="field rounded border border-rule"
+                >
+                  <option value={1}>Yes (Complete)</option>
+                  <option value={0}>No (Missing)</option>
+                </select>
+              </label>
+
+              <label className="flex flex-col gap-1">
+                <span className="text-muted">Prior Schemes Enrolled</span>
+                <input
+                  type="number"
+                  value={priorSchemes}
+                  onChange={(e) => setPriorSchemes(parseInt(e.target.value) || 0)}
+                  className="field rounded border border-rule"
+                />
+              </label>
+
+              <label className="flex flex-col gap-1">
+                <span className="text-muted">Applicant Age (Years)</span>
+                <input
+                  type="number"
+                  value={age}
+                  onChange={(e) => setAge(parseFloat(e.target.value) || 0)}
+                  className="field rounded border border-rule"
+                />
+              </label>
+            </div>
+
+            <div className="flex items-center justify-between border-t border-rule pt-3 text-xs">
+              <label className="flex items-center gap-1.5 font-bold">
+                <span className="text-muted">System Stated Decision Outcome:</span>
+                <select
+                  value={label}
+                  onChange={(e) => setLabel(parseInt(e.target.value))}
+                  className="field rounded border border-rule font-bold text-xs py-1"
+                >
+                  <option value={0}>Rejected (Eligibility Denied)</option>
+                  <option value={1}>Approved (Eligible)</option>
+                </select>
+              </label>
+
+              <button
+                onClick={() => runMembershipAudit()}
+                disabled={busy !== null}
+                className="btn-primary rounded text-xs font-bold py-1.5 px-4 cursor-pointer"
+              >
+                {busy === "membership" ? "Auditing Sandbox Data..." : "Run Sandbox Privacy Audit"}
+              </button>
+            </div>
+          </div>
+        )}
 
         {error && (
           <div className="callout-flag mt-5 flex items-start gap-3 rounded-lg">
@@ -303,7 +568,7 @@ export function CitizenPortal() {
           <div className="flex flex-wrap items-center justify-between border-b border-rule pb-4 gap-3">
             <div className="flex items-center gap-2">
               <Sparkles className="text-amber-600 w-5 h-5 animate-bounce" />
-              <h2 className="text-xl font-serif font-semibold">Your Audit Certificate</h2>
+              <h2 className="text-xl font-serif font-semibold">Your Compliance Certificate</h2>
             </div>
             <div className="flex items-center gap-2 bg-paper-sunk px-3 py-1.5 rounded text-xs font-mono border border-rule">
               <QrCode className="w-3.5 h-3.5 text-muted" />
@@ -445,19 +710,19 @@ export function CitizenPortal() {
           <div className="flex flex-wrap items-center gap-3 border-t border-rule pt-4">
             <button
               onClick={() => handleDownloadPDF(result)}
-              className="btn-primary rounded flex items-center gap-2 cursor-pointer"
+              className="btn-primary rounded flex items-center gap-2 cursor-pointer text-xs font-bold"
             >
               <FileDown className="w-4 h-4" />
-              Download Audit Certificate (PDF)
+              Download Compliance Certificate (PDF)
             </button>
 
             {result.kind === "explainability" && (
               <button
                 onClick={() => handleDownloadRTI(result)}
-                className="btn-quiet rounded flex items-center gap-2 cursor-pointer border-flag text-flag hover:bg-flag-soft transition-colors"
+                className="btn-quiet rounded flex items-center gap-2 cursor-pointer border-flag text-flag hover:bg-flag-soft transition-colors text-xs font-bold"
               >
                 <FileText className="w-4 h-4 text-flag" />
-                Generate RTI Application (PDF)
+                Generate RTI Request form (PDF)
               </button>
             )}
 
@@ -514,7 +779,7 @@ function QuestionButton({
       </div>
       <div>
         <span className="block font-serif text-[1.1rem] font-semibold text-ink">
-          {busy ? "Executing Audit..." : title}
+          {busy ? "Executing Compliance Check..." : title}
         </span>
         <span className="mt-1 block text-[0.85rem] leading-relaxed text-muted">
           {detail}

@@ -1,56 +1,38 @@
-/* SENTINEL — editorial theme.
- *
- * A signed audit report is a document, not a dashboard, so the interface is
- * built to read like one: warm paper ground, dark ink, serif headings, hairline
- * rules, generous measure. No gradients, no elevation, no decorative colour.
- *
- * Colour is semantic here, never ornamental. Red appears only where a finding
- * is actually flagged, so its presence carries information rather than style.
- * The default Tailwind blue/indigo/violet scales are deliberately never
- * referenced anywhere in this project.
- */
-
 @import "tailwindcss";
 
-/* Self-hosted: the container must render correctly with no network access. */
-@import "@fontsource/source-serif-4/400.css";
-@import "@fontsource/source-serif-4/600.css";
-@import "@fontsource/source-serif-4/400-italic.css";
+/* SENTINEL — Premium SaaS Corporate Theme
+ * Ebury-inspired · Deep Navy + Satin Gold · Plus Jakarta Sans + Outfit
+ */
 
 @theme {
-  /* Paper and ink. Warm neutrals rather than pure grey -- a flat #fff/#000
-   * reads as a screen, whereas a slight warmth reads as a printed page. */
-  --color-paper: #faf8f5;
-  --color-paper-sunk: #f3efe8;
-  --color-ink: #1c1a17;
-  --color-ink-soft: #423d36;
-  --color-muted: #6b655c;
-  --color-rule: #e2ddd4;
-  --color-rule-strong: #cbc4b8;
+  --color-paper:           #f8fafc;
+  --color-paper-sunk:      #f1f5f9;
+  --color-ink:             #0a1128;
+  --color-ink-soft:        #1e293b;
+  --color-muted:           #64748b;
+  --color-rule:            #e2e8f0;
+  --color-rule-strong:     #cbd5e1;
 
-  /* One accent, used sparingly: links, the active tab, primary action. A deep
-   * ink-red that belongs to the same warm family as the paper. */
-  --color-accent: #8c2f1e;
-  --color-accent-soft: #f6ebe7;
+  --color-accent:          #0f1d3a;
+  --color-accent-soft:     #eef2f8;
+  --color-brand-gold:      #c59b27;
+  --color-brand-gold-soft: #fcf8eb;
 
-  /* Reserved strictly for findings. */
-  --color-flag: #9b2c14;
-  --color-flag-soft: #fbeae5;
-  --color-caution: #8a6218;
-  --color-caution-soft: #fbf2df;
-  --color-clear: #2f5d3a;
-  --color-clear-soft: #eaf1e9;
+  --color-flag:            #c23b22;
+  --color-flag-soft:       #fdf2f0;
+  --color-caution:         #b87b00;
+  --color-caution-soft:    #fef8eb;
+  --color-clear:           #15803d;
+  --color-clear-soft:      #f0fdf4;
 
-  --font-serif: "Source Serif 4", Charter, Georgia, "Times New Roman", serif;
-  --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto,
-    sans-serif;
-  --font-mono: ui-monospace, "Cascadia Code", "SF Mono", Consolas, monospace;
+  --font-serif: 'Outfit', 'Segoe UI', system-ui, sans-serif;
+  --font-sans:  'Plus Jakarta Sans', ui-sans-serif, system-ui, sans-serif;
+  --font-mono:  ui-monospace, "Cascadia Code", "SF Mono", Consolas, monospace;
 }
 
+/* ─── BASE ─────────────────────────────────────────────────────────── */
 @layer base {
-  html {
-    -webkit-font-smoothing: antialiased;
-  }
+  html { -webkit-font-smoothing: antialiased; scroll-behavior: smooth; }
 
   body {
     background-color: var(--color-paper);
@@ -59,132 +41,213 @@
     line-height: 1.65;
   }
 
-  h1,
-  h2,
-  h3 {
+  h1, h2, h3, h4 {
     font-family: var(--font-serif);
-    font-weight: 600;
-    letter-spacing: -0.011em;
-    line-height: 1.25;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    line-height: 1.2;
   }
 
-  /* Statistics are read down a column and compared, so digits must align. */
-  table,
-  .tabular {
-    font-variant-numeric: tabular-nums;
-  }
+  table, .tabular { font-variant-numeric: tabular-nums; }
 
   :focus-visible {
-    outline: 2px solid var(--color-accent);
+    outline: 2px solid var(--color-brand-gold);
     outline-offset: 2px;
   }
 }
 
+/* ─── ANIMATIONS ────────────────────────────────────────────────────── */
+@layer base {
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(24px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+  }
+  @keyframes shimmer {
+    0%   { background-position: -200% 0; }
+    100% { background-position: 200%  0; }
+  }
+  @keyframes pulse-ring {
+    0%   { transform: scale(1);    opacity: 0.6; }
+    100% { transform: scale(1.55); opacity: 0;   }
+  }
+  @keyframes typing-cursor {
+    0%, 100% { opacity: 1; }
+    50%      { opacity: 0; }
+  }
+  @keyframes flow-dash {
+    to { stroke-dashoffset: -20; }
+  }
+  @keyframes float {
+    0%, 100% { transform: translateY(0px); }
+    50%      { transform: translateY(-6px); }
+  }
+  @keyframes counter-tick {
+    from { opacity: 0; transform: translateY(8px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes glow-pulse {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(197, 155, 39, 0); }
+    50%      { box-shadow: 0 0 0 8px rgba(197, 155, 39, 0.08); }
+  }
+  @keyframes marquee {
+    from { transform: translateX(0); }
+    to   { transform: translateX(-50%); }
+  }
+
+  .anim-fade-up   { animation: fadeUp 0.6s ease both; }
+  .anim-fade-in   { animation: fadeIn 0.5s ease both; }
+  .anim-float     { animation: float 4s ease-in-out infinite; }
+  .anim-glow      { animation: glow-pulse 2.5s ease-in-out infinite; }
+
+  .delay-100 { animation-delay: 100ms; }
+  .delay-200 { animation-delay: 200ms; }
+  .delay-300 { animation-delay: 300ms; }
+  .delay-400 { animation-delay: 400ms; }
+  .delay-500 { animation-delay: 500ms; }
+  .delay-600 { animation-delay: 600ms; }
+
+  /* Shimmer text effect */
+  .shimmer-text {
+    background: linear-gradient(
+      90deg,
+      var(--color-brand-gold) 0%,
+      #f0d47c 40%,
+      var(--color-brand-gold) 60%,
+      #e8c050 100%
+    );
+    background-size: 200% auto;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    animation: shimmer 3s linear infinite;
+  }
+
+  /* Pulse ring for live indicator dot */
+  .live-dot::before {
+    content: '';
+    position: absolute;
+    inset: -2px;
+    border-radius: 50%;
+    background: rgba(197,155,39,0.4);
+    animation: pulse-ring 1.5s ease-out infinite;
+  }
+
+  /* Animated flow connector lines */
+  .flow-line {
+    stroke-dasharray: 6 4;
+    animation: flow-dash 1s linear infinite;
+  }
+
+  /* Step connector vertical line animation */
+  .step-line-fill {
+    background: linear-gradient(to bottom, var(--color-brand-gold), transparent);
+    animation: fadeIn 1s ease both;
+  }
+}
+
+/* ─── COMPONENTS ────────────────────────────────────────────────────── */
 @layer components {
-  /* A sheet of paper. Bordered rather than shadowed -- elevation is the visual
-   * grammar of an app, and this is meant to read as a record. */
+
+  /* Card */
   .sheet {
-    @apply border border-rule bg-white px-6 py-5 sm:px-7 sm:py-6;
+    @apply border border-rule bg-white px-6 py-6 sm:px-8 sm:py-7 rounded-2xl shadow-xs
+           transition-all duration-300 hover:shadow-md;
   }
 
+  /* Micro label */
   .rule-label {
-    @apply text-[0.7rem] font-semibold uppercase tracking-[0.13em] text-muted;
+    @apply text-[0.68rem] font-bold uppercase tracking-[0.15em] text-muted font-sans;
   }
 
-  /* The plain-language panel. Docs 5.2 makes this a design constraint, not
-   * decoration: it must be legible to a 7th-9th standard reader, so it gets
-   * the largest body type on the page and a serif face for readability. */
-  .plain-answer {
-    @apply border-l-2 border-accent bg-paper-sunk px-5 py-4;
-  }
+  /* Certificate block */
+  .plain-answer { @apply border-l-4 border-brand-gold bg-brand-gold-soft/30 px-6 py-5 rounded-r-xl border-t border-b border-r border-rule-strong/20; }
+  .plain-answer dt { @apply mt-4 text-[0.68rem] font-bold uppercase tracking-[0.15em] text-brand-gold font-sans first:mt-0; }
+  .plain-answer dd { @apply mt-1.5 font-serif text-[1.125rem] font-semibold leading-relaxed text-ink; }
 
-  /* Tailwind v4's @apply cannot reference another custom class from this same
-   * layer, so the label utilities are inlined here rather than composed. */
-  .plain-answer dt {
-    @apply mt-4 text-[0.7rem] font-semibold uppercase tracking-[0.13em]
-           text-muted first:mt-0;
-  }
-
-  .plain-answer dd {
-    @apply mt-1 font-serif text-[1.0625rem] leading-relaxed text-ink;
-  }
-
+  /* Buttons */
   .btn-primary {
-    @apply inline-flex items-center justify-center border border-accent
-           bg-accent px-4 py-2 text-sm font-medium text-white transition-colors
-           hover:bg-[#75281a] disabled:cursor-not-allowed disabled:opacity-45;
+    @apply inline-flex items-center justify-center border border-accent bg-accent
+           px-5 py-2.5 text-xs font-bold tracking-wider uppercase text-white rounded-lg
+           transition-all duration-300 hover:bg-accent/90 hover:scale-[1.02] hover:shadow-md
+           disabled:cursor-not-allowed disabled:opacity-45;
   }
-
+  .btn-gold {
+    @apply inline-flex items-center justify-center border border-brand-gold bg-brand-gold
+           px-5 py-2.5 text-xs font-bold tracking-wider uppercase text-white rounded-lg
+           transition-all duration-300 hover:bg-[#b08820] hover:scale-[1.02] hover:shadow-lg
+           disabled:cursor-not-allowed disabled:opacity-45;
+  }
   .btn-quiet {
-    @apply inline-flex items-center justify-center border border-rule-strong
-           bg-white px-4 py-2 text-sm font-medium text-ink transition-colors
-           hover:bg-paper-sunk disabled:cursor-not-allowed disabled:opacity-45;
+    @apply inline-flex items-center justify-center border border-rule-strong bg-white
+           px-5 py-2.5 text-xs font-bold tracking-wider uppercase text-ink rounded-lg
+           transition-all duration-300 hover:bg-paper-sunk hover:scale-[1.02]
+           disabled:cursor-not-allowed disabled:opacity-45;
   }
 
   .field {
-    @apply border border-rule-strong bg-white px-3 py-2 text-sm text-ink
-           placeholder:text-muted;
+    @apply border border-rule-strong bg-white px-4 py-2.5 rounded-lg text-sm text-ink
+           placeholder:text-muted focus:outline-none focus:border-brand-gold focus:ring-1 focus:ring-brand-gold
+           transition-all duration-200;
   }
 
-  /* Data tables: hairline rules, no zebra striping, no vertical borders. */
-  .sheet-table {
-    @apply w-full border-collapse text-sm;
+  /* Tables */
+  .sheet-table           { @apply w-full border-collapse text-sm; }
+  .sheet-table th        { @apply border-b border-rule-strong pb-3 pr-4 text-left align-bottom text-[0.68rem] font-bold uppercase tracking-[0.15em] text-muted; }
+  .sheet-table td        { @apply border-b border-rule py-3.5 pr-4 align-middle text-ink-soft transition-colors; }
+  .sheet-table tr:hover td { @apply text-ink bg-paper/50; }
+  .sheet-table td:last-child, .sheet-table th:last-child { @apply pr-0; }
+
+  /* Tags */
+  .tag-flag, .tag-caution, .tag-clear, .tag-quiet, .tag-gold {
+    @apply inline-block px-2.5 py-0.5 text-[0.68rem] font-bold uppercase tracking-wider rounded-full border;
+  }
+  .tag-flag    { @apply bg-flag-soft    text-flag       border-flag/10; }
+  .tag-caution { @apply bg-caution-soft text-caution    border-caution/10; }
+  .tag-clear   { @apply bg-clear-soft   text-clear      border-clear/10; }
+  .tag-quiet   { @apply bg-paper-sunk   text-muted      border-rule-strong/20; }
+  .tag-gold    { @apply bg-brand-gold-soft text-brand-gold border-brand-gold/10; }
+
+  /* Callouts */
+  .callout-flag, .callout-clear, .callout-note {
+    @apply border-l-4 px-6 py-5 font-serif text-[1.1rem] leading-relaxed rounded-r-xl border-t border-b border-r;
+  }
+  .callout-flag  { @apply border-flag      bg-flag-soft       text-ink border-t-flag/5      border-b-flag/5      border-r-flag/5; }
+  .callout-clear { @apply border-clear     bg-clear-soft      text-ink border-t-clear/5     border-b-clear/5     border-r-clear/5; }
+  .callout-note  { @apply border-brand-gold bg-brand-gold-soft/20 text-ink border-t-brand-gold/5 border-b-brand-gold/5 border-r-brand-gold/5; }
+
+  /* Workflow step card */
+  .step-card {
+    @apply relative bg-white border border-rule rounded-2xl p-6 shadow-xs
+           transition-all duration-300 cursor-default;
+  }
+  .step-card:hover {
+    @apply shadow-lg border-brand-gold/30 -translate-y-0.5;
   }
 
-  .sheet-table th {
-    @apply border-b border-rule-strong pb-2 pr-4 text-left align-bottom
-           text-[0.7rem] font-semibold uppercase tracking-[0.13em] text-muted;
+  /* Persona card */
+  .persona-card {
+    @apply border-2 border-rule bg-white rounded-2xl p-5 cursor-pointer
+           transition-all duration-300 hover:border-brand-gold/50 hover:shadow-md;
+  }
+  .persona-card.active {
+    @apply border-brand-gold bg-brand-gold-soft shadow-md;
   }
 
-  .sheet-table td {
-    @apply border-b border-rule py-2.5 pr-4 align-top;
+  /* Stat counter card */
+  .stat-card {
+    @apply text-center space-y-1 border border-white/10 rounded-xl px-4 py-4
+           hover:border-brand-gold/30 transition-all duration-300;
   }
 
-  .sheet-table td:last-child,
-  .sheet-table th:last-child {
-    @apply pr-0;
-  }
-
-  .tag-flag,
-  .tag-caution,
-  .tag-clear,
-  .tag-quiet {
-    @apply inline-block px-2 py-0.5 text-[0.72rem] font-semibold uppercase
-           tracking-wider;
-  }
-
-  .tag-flag {
-    @apply bg-flag-soft text-flag;
-  }
-
-  .tag-caution {
-    @apply bg-caution-soft text-caution;
-  }
-
-  .tag-clear {
-    @apply bg-clear-soft text-clear;
-  }
-
-  .tag-quiet {
-    @apply bg-paper-sunk text-muted;
-  }
-
-  /* A finding worth reading before anything else on the page. */
-  .callout-flag,
-  .callout-clear,
-  .callout-note {
-    @apply border-l-2 px-5 py-4 font-serif text-[1.0625rem] leading-relaxed;
-  }
-
-  .callout-flag {
-    @apply border-flag bg-flag-soft text-ink;
-  }
-
-  .callout-clear {
-    @apply border-clear bg-clear-soft text-ink;
-  }
-
-  .callout-note {
-    @apply border-rule-strong bg-paper-sunk text-ink-soft;
+  /* Hero grid pattern overlay */
+  .hero-grid {
+    background-image: 
+      linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
+    background-size: 40px 40px;
   }
 }
