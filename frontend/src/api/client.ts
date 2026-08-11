@@ -225,4 +225,15 @@ export const api = {
     request<{ public_key_pem: string; algorithm: string; note: string }>(
       "/verify/public-key",
     ),
+
+  tamperReport: (sequence: number) =>
+    request<{ success: boolean; detail: string }>("/verify/tamper", {
+      method: "POST",
+      body: { sequence },
+    }),
+
+  resetLedger: () =>
+    request<{ success: boolean; detail: string }>("/verify/reset", {
+      method: "POST",
+    }),
 };

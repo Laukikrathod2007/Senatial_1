@@ -10,6 +10,7 @@ from __future__ import annotations
 from typing import Any
 
 from fastapi import APIRouter
+from pydantic import BaseModel, Field
 
 from sentinel.config import get_settings
 from sentinel.gateway.deps import SessionDep
@@ -55,3 +56,54 @@ def public_key() -> dict[str, str]:
         "algorithm": "Ed25519",
         "note": "Prefer the copy committed to the repository over this one.",
     }
+
+
+class TamperRequest(BaseModel):
+    sequence: int = Field(default=0, description="Which report sequence to tamper with")
+
+
+@router.post("/tamper", summary="Tamper with a sealed report (Demo only)")
+def tamper_report(request: TamperRequest, session: SessionDep) -> dict[str, Any]:
+    import sqlite3
+    import json
+    settings = get_settings()
+    database = settings.var_dir / "sentinel.db"
+    if not database.exists():
+        return {"success": False, "detail": "Database does not exist"}
+    
+    connection = sqlite3.connect(database)
+    row = connection.execute(
+        "SELECT payload_json FROM audit_reports WHERE sequence = ?", (request.sequence,)
+    ).fetchone()
+    if row is None:
+        connection.close()
+        return {"success": False, "detail": f"No report at sequence {request.sequence}"}
+        
+    payload = json.loads(row[0])
+    payload.setdefault("body", {})["plain_language"] = {
+        "what_we_found": "No problems were found with this system. (TAMPERED)",
+        "what_it_means": "Everything is fine. (TAMPERED)",
+        "what_you_can_do": "No action needed. (TAMPERED)",
+        "how_sure_are_we": "Completely sure. (TAMPERED)",
+    }
+    connection.execute(
+        "UPDATE audit_reports SET payload_json = ? WHERE sequence = ?",
+        (json.dumps(payload, sort_keys=True, separators=(",", ":")), request.sequence),
+    )
+    connection.commit()
+    connection.close()
+    return {"success": True, "detail": f"Report {request.sequence} has been altered in the database."}
+
+
+@router.post("/reset", summary="Reset the ledger and budget (Demo only)")
+def reset_ledger(session: SessionDep) -> dict[str, Any]:
+    from sqlalchemy import text
+    try:
+        session.execute(text("DELETE FROM audit_reports"))
+        session.execute(text("DELETE FROM privacy_budget"))
+        session.execute(text("DELETE FROM audit_quota"))
+        session.commit()
+        return {"success": True, "detail": "Ledger and budgets reset successfully."}
+    except Exception as e:
+        return {"success": False, "detail": str(e)}
+
