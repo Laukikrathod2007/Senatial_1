@@ -16,7 +16,7 @@ would be dishonest.
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Any
+from typing import Any, Callable
 
 import numpy as np
 
@@ -24,7 +24,7 @@ from sentinel.engines.redteam.generator import generate_cohort
 from sentinel.engines.redteam.taxonomy import TAXONOMY, EdgeCase
 from sentinel.reporting.intervals import ProportionInterval, wilson_interval
 from sentinel.reporting.normal import norm_sf
-from sentinel.target.registry import BlackBoxClient
+from sentinel.target.registry import BlackBoxClient, PredictionBatch
 
 
 @dataclass(frozen=True)
@@ -36,9 +36,13 @@ class CohortResult:
     citizen_description: str
     n: int
     rejection_rate: ProportionInterval
-    baseline_rate: float
-    disparity: float
+    baseline_rate: float | None
+    disparity: float | None
     p_value: float
+    requested: int = 0
+    attempted: int = 0
+    failures: dict[str, int] = field(default_factory=dict)
+    metric_available: bool = True
 
     @property
     def is_significant(self) -> bool:
@@ -48,7 +52,12 @@ class CohortResult:
         significant while meaning nothing to a citizen, so a 5-point floor keeps
         the report honest about what is worth acting on.
         """
-        return self.p_value < 0.05 and self.disparity >= 0.05
+        return (
+            self.metric_available
+            and self.disparity is not None
+            and self.p_value < 0.05
+            and self.disparity >= 0.05
+        )
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -56,33 +65,44 @@ class CohortResult:
             "description": self.description,
             "affected_group": self.citizen_description,
             "profiles_tested": self.n,
-            "rejection_rate": round(self.rejection_rate.rate, 4),
-            "rejection_rate_ci": [
-                round(self.rejection_rate.ci_low, 4),
-                round(self.rejection_rate.ci_high, 4),
-            ],
-            "baseline_rejection_rate": round(self.baseline_rate, 4),
-            "disparity": round(self.disparity, 4),
+            "profiles_requested": self.requested,
+            "profiles_attempted": self.attempted,
+            "profiles_failed": self.attempted - self.n,
+            "profiles_not_attempted": self.requested - self.attempted,
+            "failed_probe_types": self.failures,
+            "rejection_rate": round(self.rejection_rate.rate, 4) if self.n else None,
+            "rejection_rate_ci": (
+                [round(self.rejection_rate.ci_low, 4), round(self.rejection_rate.ci_high, 4)]
+                if self.n else None
+            ),
+            "baseline_rejection_rate": (
+                round(self.baseline_rate, 4) if self.baseline_rate is not None else None
+            ),
+            "disparity": round(self.disparity, 4) if self.disparity is not None else None,
             "p_value": float(f"{self.p_value:.2e}"),
             "flagged": self.is_significant,
+            "metric_available": self.metric_available,
         }
 
 
 @dataclass
 class RedTeamReport:
     target_id: str
-    baseline_rate: float = 0.0
+    baseline_rate: float | None = 0.0
     baseline_n: int = 0
+    baseline_requested: int = 0
+    baseline_attempted: int = 0
+    baseline_failures: dict[str, int] = field(default_factory=dict)
     cohorts: list[CohortResult] = field(default_factory=list)
     queries_used: int = 0
 
     def worst(self) -> CohortResult | None:
         flagged = [c for c in self.cohorts if c.is_significant]
-        return max(flagged, key=lambda c: c.disparity) if flagged else None
+        return max(flagged, key=lambda c: c.disparity or 0.0) if flagged else None
 
     def headline(self) -> str | None:
         worst = self.worst()
-        if worst is None:
+        if worst is None or self.baseline_rate is None or worst.disparity is None:
             return None
         return (
             f"{worst.citizen_description} were rejected "
@@ -95,10 +115,19 @@ class RedTeamReport:
         return {
             "audit_type": "fairness_red_team",
             "method": "synthetic edge-case cohorts vs. matched clean baseline, "
-            "two-proportion z-test with Wilson intervals",
+            "one-sided two-proportion z-test with 95% Wilson intervals; "
+            "p-values are unadjusted across cohorts",
             "target_id": self.target_id,
-            "baseline_rejection_rate": round(self.baseline_rate, 4),
+            "baseline_rejection_rate": (
+                round(self.baseline_rate, 4) if self.baseline_rate is not None else None
+            ),
             "baseline_profiles": self.baseline_n,
+            "baseline_profiles_requested": self.baseline_requested,
+            "baseline_profiles_attempted": self.baseline_attempted,
+            "baseline_profiles_completed": self.baseline_n,
+            "baseline_profiles_failed": self.baseline_attempted - self.baseline_n,
+            "baseline_profiles_not_attempted": self.baseline_requested - self.baseline_attempted,
+            "baseline_failed_probe_types": self.baseline_failures,
             "queries_used": self.queries_used,
             "headline": self.headline(),
             "cohorts": [c.to_dict() for c in self.cohorts],
@@ -107,7 +136,8 @@ class RedTeamReport:
                 "rewards Aadhaar seeding and complete documents, so these "
                 "disparities are expected by construction. This validates that "
                 "the method recovers a known bias; it is not the discovery of "
-                "an unknown one."
+                "an unknown one. The reported p-values are exploratory and "
+                "are not adjusted for testing multiple cohorts."
             ),
         }
 
@@ -140,43 +170,96 @@ class RedTeamEngine:
         per_cohort: int = 500,
         categories: tuple[EdgeCase, ...] = TAXONOMY,
         seed: int = 0,
+        progress_callback: Callable[[int, int, int], None] | None = None,
     ) -> RedTeamReport:
         """Submit each cohort and compare rejection rates to the baseline."""
         baseline = np.atleast_2d(np.asarray(baseline, dtype=float))
-
-        baseline_rejected = target.predict_proba(baseline)[:, 1] < 0.5
-        baseline_count = int(baseline_rejected.sum())
-        baseline_rate = float(baseline_rejected.mean())
-        queries = len(baseline)
-
-        cohorts: list[CohortResult] = []
+        baseline_result = self._query(target, baseline)
+        if progress_callback is not None:
+            progress_callback(
+                baseline_result.attempted,
+                baseline_result.completed,
+                baseline_result.attempted - baseline_result.completed,
+            )
+        batches: list[tuple[EdgeCase, int, PredictionBatch]] = []
         for offset, case in enumerate(categories):
             profiles = generate_cohort(baseline, case, per_cohort, seed=seed + offset)
-            rejected = target.predict_proba(profiles)[:, 1] < 0.5
-            queries += len(profiles)
+            prediction = self._query(target, profiles)
+            if progress_callback is not None:
+                progress_callback(
+                    prediction.attempted,
+                    prediction.completed,
+                    prediction.attempted - prediction.completed,
+                )
+            batches.append((case, len(profiles), prediction))
+        return self._build_report(target_id, len(baseline), baseline_result, batches)
 
+    @staticmethod
+    def _build_report(
+        target_id: str,
+        baseline_requested: int,
+        baseline_result: PredictionBatch,
+        batches: list[tuple[EdgeCase, int, PredictionBatch]],
+    ) -> RedTeamReport:
+        baseline_rows = baseline_result.probabilities[baseline_result.succeeded]
+        baseline_rejected = baseline_rows[:, 1] < 0.5
+        baseline_count = int(baseline_rejected.sum())
+        baseline_rate = float(baseline_rejected.mean()) if len(baseline_rows) else None
+        queries = baseline_result.attempted
+        cohorts: list[CohortResult] = []
+
+        for case, requested, prediction in batches:
+            queries += prediction.attempted
+            rejected = prediction.probabilities[prediction.succeeded, 1] < 0.5
             count = int(rejected.sum())
+            metrics_available = bool(len(rejected) and len(baseline_rows))
+            cohort_rate = count / len(rejected) if len(rejected) else 0.0
+            disparity = cohort_rate - baseline_rate if metrics_available else None
             cohorts.append(
                 CohortResult(
                     category=case.name,
                     description=case.description,
                     citizen_description=case.citizen_description,
-                    n=len(profiles),
-                    rejection_rate=wilson_interval(count, len(profiles)),
+                    n=len(rejected),
+                    rejection_rate=wilson_interval(count, len(rejected)),
                     baseline_rate=baseline_rate,
-                    disparity=count / len(profiles) - baseline_rate,
-                    p_value=_two_proportion_p(
-                        count, len(profiles), baseline_count, len(baseline)
+                    disparity=disparity,
+                    p_value=(
+                        _two_proportion_p(
+                            count, len(rejected), baseline_count, len(baseline_rows)
+                        ) if metrics_available else 1.0
                     ),
+                    requested=requested,
+                    attempted=prediction.attempted,
+                    failures=prediction.failures,
+                    metric_available=metrics_available,
                 )
             )
 
-        cohorts.sort(key=lambda c: c.disparity, reverse=True)
-
+        cohorts.sort(key=lambda c: c.disparity if c.disparity is not None else -1.0, reverse=True)
         return RedTeamReport(
             target_id=target_id,
             baseline_rate=baseline_rate,
-            baseline_n=len(baseline),
+            baseline_n=len(baseline_rows),
+            baseline_requested=baseline_requested,
+            baseline_attempted=baseline_result.attempted,
+            baseline_failures=baseline_result.failures,
             cohorts=cohorts,
             queries_used=queries,
+        )
+
+    @staticmethod
+    def _query(target: BlackBoxClient, profiles: np.ndarray) -> PredictionBatch:
+        query_batch = getattr(target, "query_batch", None)
+        if callable(query_batch):
+            return query_batch(profiles)
+        probabilities = np.asarray(target.predict_proba(profiles), dtype=float)
+        if probabilities.shape != (len(profiles), 2) or not np.isfinite(probabilities).all():
+            raise ValueError("Target returned invalid probability output")
+        return PredictionBatch(
+            probabilities=probabilities,
+            succeeded=np.ones(len(profiles), dtype=bool),
+            attempted=len(profiles),
+            completed=len(profiles),
+            failures={},
         )

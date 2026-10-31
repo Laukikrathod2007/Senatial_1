@@ -57,7 +57,9 @@ def _register_all_tables() -> None:
     query against them fails at runtime with "no such table".
     """
     from sentinel.gateway import budget as _budget  # noqa: F401
+    from sentinel.gateway import jobs as _jobs  # noqa: F401
     from sentinel.privacy import guardian as _guardian  # noqa: F401
+    from sentinel.cases import models as _cases  # noqa: F401
 
 
 def create_session_factory(database_url: str | None = None) -> sessionmaker:

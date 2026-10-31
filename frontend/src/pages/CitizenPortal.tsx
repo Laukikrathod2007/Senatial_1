@@ -1,13 +1,13 @@
 /**
  * Citizen portal.
  *
- * Redesigned to feel like an official MeitY (Ministry of Electronics and IT) 
- * sandboxed audit panel under the DPDP Act 2023. Allows citizens to input 
+ * Synthetic-model audit panel for the SENTINEL demonstration. Allows users to input
  * custom application parameters to test for data memorization leaks in real time,
  * demonstrating how the LiRA engine detects specific memorized individuals.
  */
 
 import { useState } from "react";
+import { useLanguage } from "../i18n/LanguageContext";
 import {
   api,
   ApiError,
@@ -58,6 +58,7 @@ type Result =
     };
 
 export function CitizenPortal() {
+  const { t } = useLanguage();
   const [busy, setBusy] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<Result | null>(null);
@@ -166,7 +167,7 @@ export function CitizenPortal() {
     }
   }
 
-  // jsPDF - Official Sealed Certificate
+  // Export the actual API result with an explicit synthetic-demo limitation.
   const handleDownloadPDF = (res: Result) => {
     const doc = new jsPDF({
       orientation: "portrait",
@@ -184,12 +185,12 @@ export function CitizenPortal() {
     doc.setFont("Helvetica", "bold");
     doc.setFontSize(20);
     doc.setTextColor(28, 26, 23);
-    doc.text("ALGORITHMIC AUDIT COMPLIANCE REPORT", 20, 30);
+    doc.text("SYNTHETIC MODEL AUDIT REPORT", 20, 30);
 
     doc.setFont("Helvetica", "italic");
     doc.setFontSize(9);
     doc.setTextColor(107, 101, 92);
-    doc.text("MeitY Algorithmic Sandbox — Certified Digital Audit Ledger Instance", 20, 36);
+    doc.text("SENTINEL demonstration · synthetic stand-in model only", 20, 36);
 
     // Divider
     doc.setDrawColor(226, 221, 212);
@@ -201,8 +202,8 @@ export function CitizenPortal() {
     doc.setFontSize(9);
     doc.setTextColor(28, 26, 23);
     doc.text(`Seal Index Ref: #SEAL-${res.sealed.sequence}`, 20, 50);
-    doc.text(`Evaluation Date: ${new Date().toLocaleString()}`, 20, 55);
-    doc.text(`Compliance Standard: India DPDP Act 2023 / IEEE Std 7003-2024`, 20, 60);
+    doc.text(`Generated: ${new Date().toLocaleString()}`, 20, 55);
+    doc.text("Target: locally trained synthetic welfare eligibility model", 20, 60);
 
     // Cryptographic seal block
     doc.setFillColor(243, 239, 232);
@@ -211,14 +212,14 @@ export function CitizenPortal() {
     doc.setFont("Helvetica", "bold");
     doc.setFontSize(10);
     doc.setTextColor(140, 47, 30);
-    doc.text("OFFICIAL CRYPTOGRAPHIC WAX SEAL", 25, 75);
+    doc.text("REPORT INTEGRITY METADATA", 25, 75);
 
     doc.setFont("Courier", "normal");
     doc.setFontSize(8);
     doc.setTextColor(66, 61, 54);
     doc.text(`Payload Hash: ${res.sealed.report_hash}`, 25, 82);
-    doc.text(`Signature:    ${res.sealed.signature.slice(0, 65)}...`, 25, 87);
-    doc.text(`Key Algorithm: Ed25519 Elliptic Curve Ledger Node Signature`, 25, 92);
+    doc.text(`Signature: ${res.sealed.signature}`, 25, 87, { maxWidth: 158 });
+    doc.text("Signing algorithm: Ed25519", 25, 94);
 
     // Findings section
     doc.setFont("Helvetica", "bold");
@@ -228,22 +229,22 @@ export function CitizenPortal() {
 
     doc.setFont("Helvetica", "bold");
     doc.setFontSize(10);
-    doc.text("1. AUDITED VERDICT:", 20, 120);
+    doc.text("1. SYNTHETIC DEMO RESULT:", 20, 120);
     doc.setFont("Helvetica", "normal");
     doc.text(res.plain.what_we_found, 20, 126, { maxWidth: 170 });
 
     doc.setFont("Helvetica", "bold");
-    doc.text("2. LEGAL COMPLIANCE AND LIABILITY CODE:", 20, 150);
+    doc.text("2. LIMITATION:", 20, 150);
     doc.setFont("Helvetica", "normal");
     doc.text(res.plain.what_it_means, 20, 156, { maxWidth: 170 });
 
     doc.setFont("Helvetica", "bold");
-    doc.text("3. ADMINISTRATIVE ACTION AND REMEDY:", 20, 185);
+    doc.text("3. INTERPRETATION:", 20, 185);
     doc.setFont("Helvetica", "normal");
     doc.text(res.plain.what_you_can_do, 20, 191, { maxWidth: 170 });
 
     doc.setFont("Helvetica", "bold");
-    doc.text("4. MEASUREMENT CONFIDENCE MARGIN:", 20, 215);
+    doc.text("4. METHOD AND UNCERTAINTY:", 20, 215);
     doc.setFont("Helvetica", "normal");
     doc.text(res.plain.how_sure_are_we, 20, 221, { maxWidth: 170 });
 
@@ -254,23 +255,20 @@ export function CitizenPortal() {
     // Verification portal
     doc.setFont("Helvetica", "bold");
     doc.setFontSize(9);
-    doc.text("GOVERNMENT COMPLIANCE NOTE", 20, 248);
+    doc.text("IMPORTANT", 20, 248);
     doc.setFont("Helvetica", "normal");
     doc.setFontSize(8);
     doc.setTextColor(107, 101, 92);
-    doc.text("This document constitutes a cryptographically-verifiable integrity record.", 20, 254);
-    doc.text("Verification is open to the public on the MeitY Sandbox verify portal.", 20, 259);
+    doc.text("This is not a government audit, certification, or evidence about a real person.", 20, 254);
+    doc.text("The signature covers report integrity; it does not establish that the finding is true.", 20, 259);
 
     // Signatures
     doc.setFont("Helvetica", "bold");
     doc.setFontSize(10);
     doc.setTextColor(28, 26, 23);
-    doc.text("MINISTRY OF ELECTRONICS & IT", 130, 265);
-    doc.setFont("Helvetica", "normal");
-    doc.setFontSize(8);
-    doc.text("Algorithmic Sandbox Authority", 130, 270);
+    doc.text("SENTINEL demo", 130, 265);
 
-    doc.save(`sentinel-compliance-report-${res.sealed.sequence}.pdf`);
+    doc.save(`sentinel-demo-report-${res.sealed.sequence}.pdf`);
   };
 
   // jsPDF - Right to Information (RTI) Application Generator
@@ -279,25 +277,22 @@ export function CitizenPortal() {
     
     doc.setFont("Helvetica", "bold");
     doc.setFontSize(14);
-    doc.text("RTI APPLICATION FORM", 105, 20, { align: "center" });
+    doc.text("RTI APPLICATION — EDITABLE DRAFT", 105, 20, { align: "center" });
     doc.setFontSize(10);
-    doc.text("(Filed under Section 6(1) of the Right to Information Act, 2005)", 105, 26, { align: "center" });
+    doc.text("Starting template only · review and complete before use", 105, 26, { align: "center" });
 
     doc.setFont("Helvetica", "normal");
     doc.setFontSize(10);
     doc.text("To,", 20, 40);
-    doc.setFont("Helvetica", "bold");
-    doc.text("The Public Information Officer (PIO)", 20, 45);
-    doc.setFont("Helvetica", "normal");
-    doc.text("Department of Social Welfare / Food and Civil Supplies,", 20, 50);
-    doc.text("Government of India / Relevant State Authority.", 20, 55);
+    doc.text("The Public Information Officer,", 20, 45);
+    doc.text("[Department / public authority — confirm the responsible office]", 20, 50, { maxWidth: 170 });
 
     doc.setFont("Helvetica", "bold");
-    doc.text("Subject: Request for Information under Section 6(1) of the RTI Act, 2005", 20, 68);
+    doc.text("Subject: Records about [scheme / service / decision process]", 20, 68, { maxWidth: 170 });
 
     doc.setFont("Helvetica", "normal");
     doc.text("Sir/Madam,", 20, 78);
-    doc.text("Please provide the following information under the Right to Information Act, 2005:", 20, 84);
+    doc.text("Please provide the following records, if held by your public authority:", 20, 84);
 
     // Particulars of information
     doc.rect(20, 90, 170, 110);
@@ -306,42 +301,43 @@ export function CitizenPortal() {
     
     doc.setFont("Helvetica", "normal");
     const lines = [
-      `1. Exact technical specifications, model accuracy sheets, and algorithmic impact assessments (including subgroup disparities under IEEE Std 7003-2024) of the eligibility classifier used to deny welfare pension/ration benefits.`,
-      `2. Rationale behind why independent testing (Certificate #SEAL-${res.sealed.sequence}) demonstrated statistical contradictions. Specifically, if my monthly income was the reason stated for rejection, explain why changing it in counterfactual testing did not flip the decision.`,
-      `3. Details of the privacy logs and cumulative privacy budget parameters allocated for this target classifier model under DP rules.`,
-      `4. Provide details of the official administrative channels and grievance redressal steps available for citizens to appeal decisions flagged by independent audit tests.`
+      "1. Does the public authority use an automated or algorithmic tool in [identify the service / process]? If so, provide its name and stated purpose.",
+      "2. Provide copies of policies or notices describing how such a tool informs decisions and how a person can request human review.",
+      "3. Provide the published procedure for correcting an error or appealing a decision in this service.",
+      "4. [Add a specific, factual request for records. Avoid unnecessary sensitive personal data.]",
     ];
 
     let y = 106;
     lines.forEach(line => {
       const splitText = doc.splitTextToSize(line, 160);
       doc.text(splitText, 25, y);
-      y += splitText.length * 5 + 3;
+      y += splitText.length * 5 + 2;
     });
 
     // Fee
     doc.setFont("Helvetica", "bold");
-    doc.text("Application Fee Details:", 20, 215);
+    doc.text("Applicant details (complete locally):", 20, 210);
     doc.setFont("Helvetica", "normal");
-    doc.text("An Application Fee of Rs. 10/- is attached herewith via Postal Order / Demand Draft.", 20, 222);
+    doc.text("Name / contact / postal address: [fill in]", 20, 217);
 
-    doc.text("Applicant Signature: _______________________", 20, 245);
-    doc.text("Applicant Name: __________________________", 20, 252);
-    doc.text("Address: _________________________________", 20, 259);
-    doc.text("Date: ____________________________________", 20, 266);
+    doc.text("Date: __________________   Signature: __________________", 20, 229);
+    doc.setFontSize(8);
+    doc.text("Before filing, check the correct PIO, current fee or exemption, submission method, and applicable rules.", 20, 240, { maxWidth: 170 });
+    doc.text("This template does not assert that a particular service uses AI or that SENTINEL audited it.", 20, 248, { maxWidth: 170 });
+    doc.text(`Synthetic demo reference for your own notes only: #SEAL-${res.sealed.sequence}`, 20, 258);
 
-    doc.save(`sentinel-rti-request-${res.sealed.sequence}.pdf`);
+    doc.save(`sentinel-rti-draft-${res.sealed.sequence}.pdf`);
   };
 
   return (
     <>
-      {/* Gov Banner */}
+      {/* Demo context */}
       <div className="flex items-center justify-between bg-accent px-5 py-2.5 rounded-t-2xl text-white text-[0.68rem] font-bold uppercase tracking-wider">
         <div className="flex items-center gap-2">
           <Layers className="w-3.5 h-3.5 text-brand-gold" />
-          <span>Govt of India · Algorithmic Audit Compliance Sandbox (MeitY)</span>
+          <span>Synthetic public-service model demonstration</span>
         </div>
-        <span className="bg-brand-gold/20 border border-brand-gold/30 text-brand-gold px-2.5 py-0.5 rounded-full text-[0.62rem]">DPDP Act 2023 Certified</span>
+        <span className="bg-brand-gold/20 border border-brand-gold/30 text-brand-gold px-2.5 py-0.5 rounded-full text-[0.62rem]">Not a certification</span>
       </div>
 
       <section className="bg-white border border-rule border-t-0 rounded-b-2xl shadow-sm overflow-hidden">
@@ -350,10 +346,10 @@ export function CitizenPortal() {
           <div>
             <div className="flex items-center gap-2 mb-1">
               <Activity className="w-5 h-5 text-brand-gold animate-pulse" />
-              <h2 className="text-xl font-serif font-extrabold text-accent">Algorithmic Sandbox Audit</h2>
+              <h2 className="text-xl font-serif font-extrabold text-accent">{t.citizen_title}</h2>
             </div>
             <p className="text-sm text-muted max-w-xl leading-relaxed">
-              Audits public welfare classifiers under MeitY guidelines. Verify data leakage compliance (DPDP Act §6) and explanation consistency.
+              {t.citizen_intro}
             </p>
           </div>
           <div className="flex gap-2">
@@ -374,10 +370,10 @@ export function CitizenPortal() {
                 <KeyRound className="w-5 h-5 text-brand-gold group-hover:text-white transition-colors" />
               </div>
               <span className="block font-serif text-base font-bold text-accent mb-1">
-                {busy === "membership" && !showCustomForm ? "Executing Compliance Check..." : "Privacy Compliance Audit"}
+                {busy === "membership" && !showCustomForm ? t.citizen_running : t.citizen_run_lira_btn}
               </span>
               <span className="text-sm text-muted leading-relaxed">
-                Detects if the classifier memorized specific candidate data instead of safe patterns. Runs LiRA shadow-model tests.
+                Compares a test record with synthetic shadow-model references. This is a risk signal about the demo model, not proof about a real person.
               </span>
             </button>
 
@@ -390,10 +386,10 @@ export function CitizenPortal() {
                 <HelpCircle className="w-5 h-5 text-brand-gold group-hover:text-white transition-colors" />
               </div>
               <span className="block font-serif text-base font-bold text-accent mb-1">
-                {busy === "explainability" ? "Executing Compliance Check..." : "Reason Consistency Audit"}
+                {busy === "explainability" ? t.citizen_running : t.citizen_run_perturb_btn}
               </span>
               <span className="text-sm text-muted leading-relaxed">
-                Tests if changing only the blamed feature flips the decision. Catches explanation fraud via counterfactual probes.
+                Tests whether changing the feature named by the demo explanation changes the outcome. A no-flip result does not prove the reason was false.
               </span>
             </button>
           </div>
@@ -415,7 +411,7 @@ export function CitizenPortal() {
             <div className="bg-paper-sunk border border-rule rounded-2xl p-5 space-y-4">
               <div className="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-rule">
                 <div>
-                  <h3 className="font-serif font-bold text-sm text-accent">Custom Profile Parameters</h3>
+                  <h3 className="font-serif font-bold text-sm text-accent">{t.citizen_input_heading}</h3>
                   <p className="text-[0.7rem] text-muted mt-0.5">Alter parameters to test memorization vs generalisation.</p>
                 </div>
                 <div className="flex gap-2">
@@ -430,12 +426,12 @@ export function CitizenPortal() {
 
               <div className="grid gap-3 sm:grid-cols-2 md:grid-cols-4">
                 {[
-                  { label: "Monthly Income (INR)", value: income, setValue: (v: number) => setIncome(v), type: "number", step: 1000 },
-                  { label: "Household Size", value: householdSize, setValue: (v: number) => setHouseholdSize(v), type: "number", step: 1 },
-                  { label: "Land Owned (Acres)", value: landAcres, setValue: (v: number) => setLandAcres(v), type: "number", step: 0.1 },
-                  { label: "Years at Address", value: yearsAddress, setValue: (v: number) => setYearsAddress(v), type: "number", step: 1 },
-                  { label: "Prior Schemes", value: priorSchemes, setValue: (v: number) => setPriorSchemes(v), type: "number", step: 1 },
-                  { label: "Applicant Age", value: age, setValue: (v: number) => setAge(v), type: "number", step: 1 },
+                  { label: t.citizen_income_label, value: income, setValue: (v: number) => setIncome(v), type: "number", step: 1000 },
+                  { label: t.citizen_household_label, value: householdSize, setValue: (v: number) => setHouseholdSize(v), type: "number", step: 1 },
+                  { label: t.citizen_land_label, value: landAcres, setValue: (v: number) => setLandAcres(v), type: "number", step: 0.1 },
+                  { label: t.citizen_years_label, value: yearsAddress, setValue: (v: number) => setYearsAddress(v), type: "number", step: 1 },
+                  { label: t.citizen_prior_label, value: priorSchemes, setValue: (v: number) => setPriorSchemes(v), type: "number", step: 1 },
+                  { label: t.citizen_age_label, value: age, setValue: (v: number) => setAge(v), type: "number", step: 1 },
                 ].map(f => (
                   <label key={f.label} className="flex flex-col gap-1">
                     <span className="rule-label">{f.label}</span>
@@ -445,13 +441,13 @@ export function CitizenPortal() {
                   </label>
                 ))}
                 <label className="flex flex-col gap-1">
-                  <span className="rule-label">Aadhaar Linked</span>
+                  <span className="rule-label">{t.citizen_aadhaar_label}</span>
                   <select value={aadhaarSeeded} onChange={e => setAadhaarSeeded(parseInt(e.target.value))} className="field text-sm">
                     <option value={1}>Yes</option><option value={0}>No</option>
                   </select>
                 </label>
                 <label className="flex flex-col gap-1">
-                  <span className="rule-label">Docs Complete</span>
+                  <span className="rule-label">{t.citizen_docs_label}</span>
                   <select value={docsComplete} onChange={e => setDocsComplete(parseInt(e.target.value))} className="field text-sm">
                     <option value={1}>Yes</option><option value={0}>No</option>
                   </select>
@@ -490,7 +486,7 @@ export function CitizenPortal() {
           <div className="flex items-center justify-between px-6 py-4 border-b border-rule bg-paper">
             <div className="flex items-center gap-2">
               <Sparkles className="w-5 h-5 text-brand-gold animate-bounce" />
-              <h2 className="text-lg font-serif font-extrabold text-accent">Compliance Certificate</h2>
+              <h2 className="text-lg font-serif font-extrabold text-accent">Synthetic Demo Report</h2>
             </div>
             <span className="font-mono text-xs bg-accent text-white px-3 py-1 rounded-full">
               #SEAL-{result.sealed.sequence}
@@ -544,7 +540,7 @@ export function CitizenPortal() {
                 <h3 className="font-serif font-bold text-base text-accent flex items-center gap-2">
                   <AlertTriangle className="w-4 h-4 text-flag" /> Explanation Mismatch Analysis
                 </h3>
-                <p className="text-xs text-muted">Counterfactual probes per rejection reason. High mismatch = explanation fraud.</p>
+                <p className="text-xs text-muted">For each stated reason, the report shows how often changing only that feature did not flip the synthetic model&apos;s decision.</p>
                 <div className="space-y-3">
                   {result.report.per_feature.map(f => {
                     const rate = f.mismatch_rate * 100;
@@ -554,7 +550,7 @@ export function CitizenPortal() {
                       <div key={f.feature} className="space-y-1">
                         <div className="flex items-center justify-between text-xs font-semibold">
                           <span className="text-ink-soft">{f.citizen_label}</span>
-                          <span className={flagged ? "text-flag" : "text-muted"}>{rate.toFixed(1)}% wrong</span>
+                          <span className={flagged ? "text-flag" : "text-muted"}>{rate.toFixed(1)}% no-flip</span>
                         </div>
                         <div className="h-2 bg-rule rounded-full overflow-hidden">
                           <div className={`h-full ${barColor} rounded-full transition-all duration-700`} style={{ width: `${Math.min(rate, 100)}%` }} />
@@ -590,7 +586,7 @@ export function CitizenPortal() {
               )}
               <div className="ml-auto flex items-center gap-3">
                 <span className="text-xs text-muted hidden md:block">Verify authenticity:</span>
-                <QRCodeSVG value={`http://localhost:5173/?tab=verify&report=${result.sealed.sequence}`} size={44} className="border-2 border-rule p-1 rounded-lg bg-white" />
+                <QRCodeSVG value={`${window.location.origin}/?tab=verify&report=${result.sealed.sequence}`} size={44} className="border-2 border-rule p-1 rounded-lg bg-white" />
               </div>
             </div>
 
@@ -619,7 +615,7 @@ function TechnicalDetail({ result }: { result: Result }) {
         <table className="sheet-table">
           <tbody>
             <Row label="Memorization z-score" value={finding.memorization_z.toFixed(2)} />
-            <Row label="p-value (one-sided bootstrap)" value={finding.p_value.toExponential(2)} />
+            <Row label="One-sided tail probability" value={finding.p_value.toExponential(2)} />
             <Row label="Reference shadow models trained" value={String(finding.shadow_models)} />
             <Row
               label="Decoy control group mean score"
@@ -643,7 +639,7 @@ function TechnicalDetail({ result }: { result: Result }) {
           <tr>
             <th className="text-left">Feature</th>
             <th className="text-right">Cases Tested</th>
-            <th className="text-right">Wrong Reason</th>
+            <th className="text-right">No-flip Rate</th>
             <th className="text-right">95% Confidence Interval</th>
           </tr>
         </thead>

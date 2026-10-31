@@ -1,12 +1,13 @@
 [project]
 name = "sentinel"
 version = "0.1.0"
-description = "Independent trust verification layer for public-sector AI systems"
+description = "Hackathon prototype for audits against a synthetic welfare model"
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
     "cryptography>=50.0.0",
     "fastapi>=0.141.1",
+    "httpx>=0.28.1",
     "numpy>=2.5.2",
     "pandas>=3.0.5",
     "pydantic>=2.13.4",

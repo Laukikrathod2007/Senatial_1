@@ -1,5 +1,7 @@
 # SENTINEL — Product Requirements Document
 
+> This PRD describes intended behavior, not implemented functionality. Its legal, privacy, and market statements are not verified by the implementation audit. See [`AUDIT_REPORT.md`](AUDIT_REPORT.md) for what this checkout actually does.
+
 ## Independent Trust Verification Layer for Public AI Systems
 
 ---

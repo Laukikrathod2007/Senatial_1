@@ -28,6 +28,8 @@ def client(tmp_path, monkeypatch) -> TestClient:
     monkeypatch.setattr(
         settings, "database_url", f"sqlite:///{(tmp_path / 'api.db').as_posix()}"
     )
+    monkeypatch.setattr(settings, "enable_demo_controls", False)
+    monkeypatch.setattr(settings, "enable_demo_auth", True)
     monkeypatch.setattr(deps, "_session_factory", None)
     return TestClient(create_app())
 
@@ -125,6 +127,19 @@ def test_login_returns_the_role_quota(client):
     assert body["queries_per_audit"] == quota_for(Role.JOURNALIST).queries_per_audit
 
 
+def test_non_citizen_roles_cannot_be_self_assigned_outside_demo(monkeypatch):
+    from fastapi import HTTPException
+
+    from sentinel.api.routes.auth import LoginRequest, login
+    from sentinel.config import get_settings
+
+    monkeypatch.setattr(get_settings(), "enable_demo_auth", False)
+    with pytest.raises(HTTPException) as denied:
+        login(LoginRequest(subject="self-claimed", role=Role.CERTIFIED_AUDITOR))
+    assert denied.value.status_code == 403
+    assert login(LoginRequest(subject="citizen", role=Role.CITIZEN)).role is Role.CITIZEN
+
+
 def test_citizen_quota_is_smaller_than_auditor_quota():
     citizen = quota_for(Role.CITIZEN)
     auditor = quota_for(Role.CERTIFIED_AUDITOR)
@@ -175,3 +190,28 @@ def test_empty_ledger_verifies_cleanly(client):
     body = client.get("/verify/chain").json()
     assert body["valid"]
     assert body["reports_checked"] == 0
+
+
+def test_destructive_demo_controls_are_disabled_by_default(tmp_path, monkeypatch):
+    from fastapi import HTTPException
+
+    from sentinel.api.routes.verify import demo_controls_status, require_demo_controls
+    from sentinel.config import get_settings
+
+    settings = get_settings()
+    monkeypatch.setattr(settings, "enable_demo_controls", False)
+    assert demo_controls_status() == {"enabled": False}
+    with pytest.raises(HTTPException) as caught:
+        require_demo_controls()
+    assert caught.value.status_code == 404
+
+    settings.enable_demo_controls = True
+    settings.enable_demo_auth = True
+    with pytest.raises(HTTPException):
+        require_demo_controls()
+    demo_dir = tmp_path / "var-demo"
+    demo_dir.mkdir()
+    settings.var_dir = demo_dir
+    settings.database_url = f"sqlite:///{(demo_dir / 'sentinel.db').as_posix()}"
+    assert demo_controls_status() == {"enabled": True}
+    assert require_demo_controls() is None

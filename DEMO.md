@@ -1,6 +1,8 @@
 # SENTINEL — Judge Demo Cheat Sheet
 **IEEE Tech for Tomorrow 2026 | TIPPSS Track**
 
+> **Use the verified demo boundary:** this app audits its own synthetic stand-in, not a government service. Do not repeat older claims below that a result proves a DPDP violation, fraud, discrimination, legal compliance, or court admissibility. See [`AUDIT_REPORT.md`](AUDIT_REPORT.md) for current evidence and safe wording.
+
 ## Quick Start (30 seconds)
 
 ```powershell

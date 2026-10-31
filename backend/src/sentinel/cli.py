@@ -26,7 +26,7 @@ from sentinel.ledger.service import current_root, seal_report, verify_chain, ver
 
 app = typer.Typer(
     name="sentinel",
-    help="Independent trust verification for public-sector AI systems.",
+    help="Run audit demonstrations against SENTINEL's synthetic welfare model.",
     no_args_is_help=True,
 )
 demo_app = typer.Typer(help="Live demo commands.")

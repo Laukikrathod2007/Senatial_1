@@ -22,7 +22,7 @@ _KEY_LENGTH = 32
 
 @dataclass(frozen=True)
 class AuditorIdentity:
-    """The verified identity behind an audit request."""
+    """The subject and role encoded in a valid JWT, not proof of real identity."""
 
     subject: str
     role: Role

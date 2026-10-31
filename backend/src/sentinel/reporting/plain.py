@@ -22,52 +22,50 @@ if TYPE_CHECKING:
 
 
 def plain_language_membership(finding: "MembershipFinding") -> dict[str, str]:
-    """Restate a memorization finding for a non-technical reader."""
+    """Restate a synthetic-demo finding without implying a real person's data."""
     verdict = finding.verdict
 
     if verdict.startswith("strong"):
         what = (
-            "This system appears to have remembered this specific person's "
-            "record, rather than only learning general patterns."
+            "In this synthetic demonstration, the model responded unusually "
+            "strongly to this planted test record."
         )
         means = (
-            "If the people running this system said the data was made anonymous, "
-            "this finding does not support that claim."
+            "This only describes SENTINEL's stand-in model. It says nothing "
+            "about a real person's data or a government service."
         )
         action = (
-            "This report can be attached to a complaint or a Right to "
-            "Information request asking how this record is stored and protected."
+            "Use this result to understand the demonstration. Do not use it as "
+            "evidence about a real person or service."
         )
     elif verdict.startswith("moderate"):
         what = (
-            "There are signs this system may have remembered this specific "
-            "person's record, but the evidence is not as clear-cut."
+            "The synthetic stand-in shows a modest signal for this test record; "
+            "the result is uncertain."
         )
         means = (
-            "This is worth asking about, though on its own it does not settle "
-            "the question."
+            "This is a result about the demonstration model only, not a real "
+            "system or person's data."
         )
-        action = "Consider testing more records from the same group."
+        action = "No real-world action follows from this synthetic result."
     elif verdict.startswith("weak"):
         what = (
-            "There is only a faint sign that this record was remembered. Most "
-            "records in a system like this show something similar."
+            "The synthetic test found only a faint signal for this record."
         )
-        means = "On its own, this is not strong enough to act on."
-        action = "No action suggested based on this record alone."
+        means = "This describes the synthetic stand-in, not a deployed service."
+        action = "No real-world action follows from this synthetic result."
     else:
-        what = "This system does not appear to have remembered this record."
-        means = "Nothing here contradicts a claim that the data was anonymised."
-        action = "No action needed."
+        what = "This synthetic test did not find a strong signal for the record."
+        means = "This result does not assess a real person's data or service."
+        action = "No real-world action follows from this synthetic result."
 
     return {
         "what_we_found": what,
         "what_it_means": means,
         "what_you_can_do": action,
         "how_sure_are_we": (
-            "This is a measurement, not a certainty. It compares how this system "
-            "responds to this record against how similar systems respond to "
-            "records they have never seen."
+            "This is a statistical comparison against synthetic shadow models. "
+            "It is not proof that any real service used this record."
         ),
     }
 
@@ -79,32 +77,31 @@ def plain_language_explain(report: "ExplainabilityReport") -> dict[str, str]:
     if headline is None:
         return {
             "what_we_found": (
-                "When this system gave a reason for rejecting someone, fixing "
-                "that reason generally changed the decision."
+                "In this synthetic demo, changing the stated feature alone "
+                "usually changed the decision for the cases tested."
             ),
-            "what_it_means": "The reasons this system gives appear to be genuine.",
-            "what_you_can_do": "No action needed.",
+            "what_it_means": "This does not establish explanation quality in a real service.",
+            "what_you_can_do": "No real-world action follows from this synthetic result.",
             "how_sure_are_we": (
-                "We tested this by changing one detail at a time and resubmitting "
-                f"{report.total_cases} rejected applications."
+                "The test changed one feature in the stand-in model across "
+                f"{report.total_cases} synthetic rejected cases."
             ),
         }
 
     return {
-        "what_we_found": headline,
+        "what_we_found": "Synthetic demo finding: " + (headline or "no stable finding"),
         "what_it_means": (
-            "Some people are being told the wrong reason for their rejection. "
-            "If you fix the problem you were told about, you can still be "
-            "refused -- which makes it very hard to appeal successfully."
+            "Changing the named feature alone did not flip the outcome in some "
+            "stand-in cases. Other eligibility conditions may still explain "
+            "the result; this does not prove the stated reason was false."
         ),
         "what_you_can_do": (
-            "If you were rejected and fixed the reason you were given but were "
-            "still refused, this report is evidence that the reason may not have "
-            "been the real one. It can support a grievance or an appeal."
+            "This result concerns only the synthetic model. It is not evidence "
+            "about a real decision and should not be attached to a real appeal."
         ),
         "how_sure_are_we": (
-            f"We tested {report.total_cases} rejected applications by changing "
-            "only the one detail the system blamed, keeping everything else the "
-            "same, and checking whether the answer changed."
+            f"We tested {report.total_cases} synthetic rejected cases by changing "
+            "only the feature named by the stand-in explanation. A no-flip result "
+            "does not identify the true cause of the decision."
         ),
     }

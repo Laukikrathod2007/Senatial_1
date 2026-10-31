@@ -17,7 +17,7 @@ from __future__ import annotations
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from sentinel.api.routes import audits, auth, ledger, verify
+from sentinel.api.routes import audits, auth, cases, ledger, verify
 
 
 def create_app() -> FastAPI:
@@ -25,9 +25,9 @@ def create_app() -> FastAPI:
         title="SENTINEL",
         version="0.1.0",
         description=(
-            "Independent trust verification for public-sector AI systems. "
-            "Audits a target system using query access only -- no model "
-            "internals, no training data."
+            "Hackathon prototype that runs audit checks against its built-in "
+            "synthetic welfare eligibility model. It does not connect to or "
+            "independently audit a public-service system."
         ),
     )
 
@@ -48,8 +48,16 @@ def create_app() -> FastAPI:
 
     app.include_router(auth.router)
     app.include_router(audits.router)
+    app.include_router(cases.router)
     app.include_router(ledger.router)
     app.include_router(verify.router)
+
+    @app.on_event("startup")
+    def recover_audit_jobs() -> None:
+        """Mark jobs abandoned by a prior single-process run as failed."""
+        from sentinel.gateway.jobs import recover_interrupted_jobs
+
+        recover_interrupted_jobs()
 
     @app.get("/health", tags=["meta"])
     def health() -> dict[str, str]:

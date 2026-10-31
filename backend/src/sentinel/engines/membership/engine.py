@@ -144,6 +144,7 @@ class MembershipAuditEngine:
         labels = np.asarray(labels, dtype=int)
         row_index = np.arange(len(records))
 
+        calibration_was_cached = self._calibration is not None
         calibration = self.calibrate(target)
 
         # One batched query for the whole set -- the only target access needed.
@@ -153,7 +154,12 @@ class MembershipAuditEngine:
         scores = score_records(
             target_confidences, shadow_confidences, record_ids, calibration
         )
-        queries = len(records)
+        # Calibration is a real batch of target queries on the first audit.
+        # Include it in the report so the API's persisted budget matches actual
+        # target access instead of charging only the record/decoy probes.
+        queries = len(records) + (
+            0 if calibration_was_cached else calibration.n_reference
+        )
 
         findings: list[MembershipFinding] = []
         for i, score in enumerate(scores):

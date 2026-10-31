@@ -16,6 +16,8 @@ wheels/
 # rule if one of its parent directories is excluded, so "backend/var/" followed
 # by a negation silently keeps the public key ignored.
 backend/var/*
+backend/var-demo/
+backend/var-mock-target/
 !backend/var/keys/
 backend/var/keys/*
 
@@ -38,3 +40,4 @@ backend/var/keys/*private*
 # Frontend
 node_modules/
 frontend/dist/
+.taste-skill/

@@ -6,7 +6,7 @@ Set-Location "$PSScriptRoot\frontend"
 
 Write-Host ""
 Write-Host "==================================================" -ForegroundColor Green
-Write-Host "  SENTINEL Frontend — http://localhost:5173"        -ForegroundColor Green
+Write-Host "  SENTINEL Frontend - http://localhost:5173"        -ForegroundColor Green
 Write-Host "==================================================" -ForegroundColor Green
 Write-Host ""
 

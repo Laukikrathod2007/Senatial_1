@@ -7,12 +7,14 @@ protocol is what keeps the project's central claim ("no privileged access")
 true by construction rather than by convention: an engine that reached into
 model internals would not type-check against it.
 
-A real deployment would add an HTTP-backed implementation here for auditing a
-live public API endpoint; the engines would not need to change.
+The registry provides both the original in-process synthetic stand-in and a
+controlled local HTTP implementation. The HTTP target is opt-in, loopback-only,
+and cannot be selected by an audit request. No arbitrary URL integration exists.
 """
 
 from __future__ import annotations
 
+from dataclasses import dataclass
 from typing import Protocol, runtime_checkable
 
 import numpy as np
@@ -23,6 +25,20 @@ from sentinel.data.welfare import WelfareDataset, generate_welfare_dataset
 from sentinel.target.system import TargetSystem, train_target_system
 
 DEMO_TARGET_ID = "welfare-eligibility-demo"
+HTTP_DEMO_TARGET_ID = "welfare-eligibility-http-demo"
+
+
+@dataclass(frozen=True)
+class PredictionBatch:
+    """Validated target outputs plus explicit per-probe completion evidence."""
+
+    probabilities: np.ndarray
+    succeeded: np.ndarray
+    attempted: int
+    completed: int
+    failures: dict[str, int]
+    model_id: str | None = None
+    model_version: str | None = None
 
 
 @runtime_checkable
@@ -57,3 +73,20 @@ def load_demo_target(refresh: bool = False) -> tuple[TargetSystem, WelfareDatase
     )
     _ = settings  # settings reserved for future per-target configuration
     return target, dataset
+
+
+def load_http_demo_target(*, transport=None, progress_callback=None):
+    """Construct the explicitly configured local HTTP target adapter."""
+    settings = get_settings()
+    if not settings.enable_http_demo_target:
+        raise RuntimeError("The local HTTP demo target is disabled")
+    from sentinel.target.http import HTTPDecisionTarget
+
+    return HTTPDecisionTarget(
+        settings.http_demo_target_url,
+        timeout_seconds=settings.http_demo_timeout_seconds,
+        concurrency=settings.http_demo_concurrency,
+        max_probes=settings.http_demo_max_probes,
+        transport=transport,
+        progress_callback=progress_callback,
+    )

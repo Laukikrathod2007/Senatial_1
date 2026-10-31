@@ -63,6 +63,24 @@ class Settings(BaseSettings):
     shadow_count: int = 16
     shadow_train_size: int = 4000
 
+    # Mutating ledger actions exist only to demonstrate tamper detection. Keep
+    # them unavailable on deployed instances unless an operator explicitly
+    # enables the disposable demo workflow.
+    enable_demo_controls: bool = False
+    # Caller-selected audit roles are only acceptable in an explicitly marked
+    # local/demo deployment. They are not identity verification.
+    enable_demo_auth: bool = False
+
+    # The HTTP target is a controlled local demo service. No request body may
+    # choose a target URL; the adapter accepts only this configured loopback.
+    enable_http_demo_target: bool = False
+    http_demo_target_url: str = "http://127.0.0.1:8010"
+    # The local model may process hundreds of parallel requests on a Windows
+    # laptop; use the supported upper bound to avoid dropping valid probes.
+    http_demo_timeout_seconds: float = 10.0
+    http_demo_concurrency: int = 16
+    http_demo_max_probes: int = 20_000
+
     @property
     def keys_dir(self) -> Path:
         return self.var_dir / "keys"

@@ -2,11 +2,12 @@
 
 from __future__ import annotations
 
-from fastapi import APIRouter
+from fastapi import APIRouter, HTTPException, status
 from pydantic import BaseModel, Field
 
 from sentinel.gateway.auth import issue_token
 from sentinel.gateway.roles import Role, quota_for
+from sentinel.config import get_settings
 
 router = APIRouter(prefix="/auth", tags=["identity (M4)"])
 
@@ -34,6 +35,11 @@ def login(request: LoginRequest) -> LoginResponse:
     What is real here is the enforcement: whatever role a token carries, the
     quotas attached to it are applied on every request.
     """
+    if request.role is not Role.CITIZEN and not get_settings().enable_demo_auth:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Non-citizen demo roles are disabled. Configure SENTINEL_ENABLE_DEMO_AUTH=true only for an isolated local demo.",
+        )
     quota = quota_for(request.role)
     return LoginResponse(
         access_token=issue_token(request.subject, request.role),

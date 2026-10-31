@@ -7,6 +7,7 @@
  */
 
 import { useEffect, useState } from "react";
+import { useLanguage } from "../i18n/LanguageContext";
 import {
   api,
   ApiError,
@@ -30,6 +31,7 @@ import {
 import confetti from "canvas-confetti";
 
 export function VerifyReport() {
+  const { t } = useLanguage();
   const [chain, setChain] = useState<ChainVerification | null>(null);
   const [reports, setReports] = useState<SealedReportSummary[] | null>(null);
   const [publicKey, setPublicKey] = useState<string | null>(null);
@@ -37,6 +39,7 @@ export function VerifyReport() {
   const [error, setError] = useState<string | null>(null);
   const [actionMessage, setActionMessage] = useState<string | null>(null);
   const [copiedSeq, setCopiedSeq] = useState<number | null>(null);
+  const [demoControlsEnabled, setDemoControlsEnabled] = useState(false);
 
   async function verify() {
     setBusy(true);
@@ -61,6 +64,9 @@ export function VerifyReport() {
 
   useEffect(() => {
     void verify();
+    void api.demoControlsStatus()
+      .then(({ enabled }) => setDemoControlsEnabled(enabled))
+      .catch(() => setDemoControlsEnabled(false));
   }, []);
 
   // Copy hash to clipboard helper
@@ -124,7 +130,7 @@ export function VerifyReport() {
                 : <Server className="w-7 h-7 text-muted" />}
             <div>
               <h2 className="font-serif font-extrabold text-lg text-accent">
-                {isChainBroken ? "CRITICAL: Ledger Tampered!" : chain?.valid ? "Cryptographic Ledger Verified" : "Ledger Integrity Check"}
+                {isChainBroken ? t.verify_chain_status_invalid : chain?.valid ? t.verify_chain_status_valid : t.verify_chain_heading}
               </h2>
               <p className="text-xs text-muted mt-0.5">SHA-256 hash-chain · Ed25519 signatures · Sequence index binding</p>
             </div>
@@ -140,15 +146,15 @@ export function VerifyReport() {
               <div className="flex items-start gap-3 p-4 bg-clear-soft border border-clear/20 rounded-xl">
                 <CheckCircle className="w-5 h-5 text-clear mt-0.5 flex-shrink-0" />
                 <div>
-                  <p className="text-sm font-bold text-clear">Chain integrity verified — 100%</p>
-                  <p className="text-xs text-muted mt-1 leading-relaxed">All signatures match. Deletion or splicing of reports is mathematically ruled out.</p>
+                  <p className="text-sm font-bold text-clear">{t.verify_chain_status_valid}</p>
+                  <p className="text-xs text-muted mt-1 leading-relaxed">Available signatures and chain links match. This does not prove the ledger is complete or that its history was externally anchored.</p>
                 </div>
               </div>
             ) : (
               <div className="flex items-start gap-3 p-4 bg-flag-soft border border-flag/30 rounded-xl">
                 <AlertOctagon className="w-5 h-5 text-flag mt-0.5 flex-shrink-0 animate-pulse" />
                 <div>
-                  <p className="text-sm font-bold text-flag">Forgery detected — chain broken at block #{chain.broken_at_sequence}</p>
+                  <p className="text-sm font-bold text-flag">Integrity check failed at block #{chain.broken_at_sequence}</p>
                   <ul className="mt-2 space-y-1 text-xs font-mono text-muted list-disc pl-4">
                     {chain.failures.map((f, i) => <li key={i}>{f}</li>)}
                   </ul>
@@ -159,7 +165,7 @@ export function VerifyReport() {
 
           {chain?.merkle_root && (
             <div className="flex items-center gap-2 bg-paper-sunk border border-rule rounded-xl px-4 py-2.5 font-mono text-[0.72rem] text-ink-soft">
-              <span className="truncate flex-1">Merkle Root: {chain.merkle_root}</span>
+              <span className="truncate flex-1">{t.verify_root_label} {chain.merkle_root}</span>
               <button onClick={() => copyHash(chain.merkle_root || "", -1)}
                 className="p-1 hover:bg-rule rounded cursor-pointer text-muted hover:text-ink">
                 <Copy className="w-3.5 h-3.5" />
@@ -177,21 +183,23 @@ export function VerifyReport() {
           <div className="flex flex-wrap gap-3 pt-2">
             <button className="btn-primary rounded-xl flex items-center gap-2 cursor-pointer" disabled={busy} onClick={() => void verify()}>
               <RefreshCw className={`w-4 h-4 ${busy ? "animate-spin" : ""}`} />
-              {busy ? "Verifying..." : "Re-Verify Ledger"}
+              {busy ? "Verifying..." : t.verify_recheck_btn}
             </button>
             <button className="btn-quiet rounded-xl cursor-pointer" onClick={async () => { const k = await api.publicKey(); setPublicKey(k.public_key_pem); }}>
               Show Public Key
             </button>
-            <button className="btn-quiet rounded-xl border-flag text-flag hover:bg-flag-soft flex items-center gap-2 cursor-pointer ml-auto" onClick={handleReset}>
-              <Trash2 className="w-4 h-4" /> Reset Ledger
-            </button>
+            {demoControlsEnabled && (
+              <button className="btn-quiet rounded-xl border-flag text-flag hover:bg-flag-soft flex items-center gap-2 cursor-pointer ml-auto" onClick={handleReset}>
+                <Trash2 className="w-4 h-4" /> {t.verify_reset_btn}
+              </button>
+            )}
           </div>
 
           {publicKey && (
             <div className="border-t border-rule pt-4">
-              <p className="rule-label mb-2">Ed25519 public key</p>
+              <p className="rule-label mb-2">{t.verify_pubkey_heading}</p>
               <pre className="overflow-x-auto whitespace-pre-wrap break-all bg-paper-sunk p-4 font-mono text-[0.68rem] leading-relaxed text-ink-soft rounded-xl border border-rule">{publicKey}</pre>
-              <p className="mt-2 text-xs text-muted leading-relaxed">This key must match the repository copy to guarantee independence from the server host.</p>
+              <p className="mt-2 text-xs text-muted leading-relaxed">For independent verification, compare this key with a separately trusted published copy. A key fetched from this server alone does not establish signer identity.</p>
             </div>
           )}
         </div>
@@ -241,10 +249,10 @@ export function VerifyReport() {
                             <span>{report.target_id}</span>
                           </div>
                         </div>
-                        <button onClick={() => handleTamper(report.sequence)}
+                        {demoControlsEnabled && <button onClick={() => handleTamper(report.sequence)}
                           className="flex items-center gap-1.5 px-3 py-1.5 text-[0.7rem] font-bold bg-white border border-rule rounded-lg hover:border-flag hover:text-flag hover:bg-flag-soft text-muted transition-all cursor-pointer shadow-xs whitespace-nowrap">
-                          💥 Mutate 1 Byte
-                        </button>
+                          💥 {t.verify_tamper_btn}
+                        </button>}
                       </div>
                     </div>
                   </div>
@@ -256,18 +264,18 @@ export function VerifyReport() {
       )}
 
       {/* Walkthrough */}
-      <section className="bg-white border border-rule rounded-2xl shadow-sm overflow-hidden">
+      {demoControlsEnabled && <section className="bg-white border border-rule rounded-2xl shadow-sm overflow-hidden">
         <div className="px-6 py-4 border-b border-rule bg-paper">
           <h2 className="font-serif font-extrabold text-accent flex items-center gap-2">
-            <AlertTriangle className="w-5 h-5 text-caution" /> The Forgery Verification Test
+            <AlertTriangle className="w-5 h-5 text-caution" /> {t.verify_tamper_heading}
           </h2>
         </div>
         <div className="p-6">
           <p className="text-sm text-muted leading-relaxed max-w-2xl">
-            Click <code className="bg-paper-sunk px-1.5 py-0.5 rounded font-mono text-xs">💥 Mutate 1 Byte</code> on any block to bypass application validations and directly modify the underlying SQLite record — replicating an inside database attacker. Then click <code className="bg-paper-sunk px-1.5 py-0.5 rounded font-mono text-xs">Re-Verify Ledger</code> to watch the Ed25519 signature check fail in real-time.
+            {t.verify_tamper_desc}
           </p>
         </div>
-      </section>
+      </section>}
     </>
   );
 }

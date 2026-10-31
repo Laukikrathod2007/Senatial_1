@@ -163,7 +163,21 @@ def test_decoy_scores_are_reported_alongside_the_record(demo_target):
     assert finding.decoy_mean_score is not None
     assert finding.decoy_separation is not None
     # Decoy probing costs queries, which M5 must be able to meter.
-    assert report.queries_used == 1 + 16
+    # First use also profiles the target against 500 synthetic non-members.
+    assert report.queries_used == 1 + 16 + 500
+
+
+def test_calibration_queries_are_counted_once_per_engine(demo_target):
+    target, dataset = demo_target
+    engine = MembershipAuditEngine()
+    record = dataset.x_train[dataset.canary_indices[:1]]
+    label = dataset.y_train[dataset.canary_indices[:1]]
+
+    first = engine.audit(target, record, label, ["first"], with_decoys=False)
+    second = engine.audit(target, record, label, ["second"], with_decoys=False)
+
+    assert first.queries_used == 1 + 500
+    assert second.queries_used == 1
 
 
 # -- calibration -------------------------------------------------------------

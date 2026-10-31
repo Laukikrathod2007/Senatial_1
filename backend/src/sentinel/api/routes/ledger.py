@@ -45,13 +45,17 @@ def get_report(sequence: int, identity: AuthDep, session: SessionDep) -> dict[st
     return {
         "sequence": row.sequence,
         "payload": json.loads(row.payload_json),
+        # Preserve the exact signed bytes across JavaScript JSON.parse/stringify.
+        # JS converts integral decimals such as 0.0 to 0, changing canonical
+        # Python JSON bytes and making an untampered exported copy unverifiable.
+        "canonical_payload": row.payload_json,
         "report_hash": row.report_hash,
         "previous_hash": row.previous_hash,
         "signature": row.signature,
     }
 
 
-@router.get("/root", summary="Current published Merkle root")
+@router.get("/root", summary="Current locally computed Merkle root")
 def published_root(session: SessionDep) -> dict[str, Any]:
     """Public: the value a third party can pin to detect later changes."""
     return {"merkle_root": current_root(session)}

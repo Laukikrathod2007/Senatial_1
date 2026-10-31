@@ -1,5 +1,7 @@
 # SENTINEL — Technical Documentation
 
+> **Current implementation warning:** This file contains historical design claims that do not all match the checkout. Use [`AUDIT_REPORT.md`](AUDIT_REPORT.md) for verified scope and [`IMPLEMENTATION_REPORT.md`](IMPLEMENTATION_REPORT.md) for current changes. In particular, the target is synthetic, roles are self-selected in demo login, and current deterministic audit queries do not provide a formal differential-privacy guarantee.
+
 Implementation reference for the SENTINEL prototype: architecture, API surface,
 configuration, and setup.
 

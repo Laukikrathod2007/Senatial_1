@@ -1,6 +1,8 @@
 # Project SENTINEL
 ### An Independent, Cryptographically-Verifiable Trust & Integrity Layer for Public-Sector AI Systems
 
+> **Implementation status note:** This is a project narrative, not a reliable statement of shipped behavior. The current checkout targets a synthetic local model, and its role chooser and DP budget do not establish identity or a formal privacy guarantee. Consult [`AUDIT_REPORT.md`](AUDIT_REPORT.md) and [`IMPLEMENTATION_REPORT.md`](IMPLEMENTATION_REPORT.md) before using claims from this document.
+
 **Theme:** Cybersecurity for Community Safety — Securing digital infrastructure and personal data within local ecosystems
 **Event:** IEEE Computer Society — Tech for Tomorrow 2026
 **Track alignment:** TIPPSS (Trust, Identity, Privacy, Protection, Safety, Security)

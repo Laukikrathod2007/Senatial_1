@@ -93,3 +93,18 @@ def test_report_discloses_that_the_bias_was_planted(report):
 
 def test_report_is_json_serializable_for_the_ledger(report):
     json.dumps(report.to_dict(), allow_nan=False)
+
+
+def test_reported_rates_match_independent_predictions(demo_target, baseline, report):
+    """Recompute every reported rate from generated rows and target outputs."""
+    from sentinel.engines.redteam import TAXONOMY
+
+    target, _ = demo_target
+    expected_baseline = float((target.predict_proba(baseline)[:, 1] < 0.5).mean())
+    assert report.baseline_rate == pytest.approx(expected_baseline)
+
+    by_name = {cohort.category: cohort for cohort in report.cohorts}
+    for offset, case in enumerate(TAXONOMY):
+        profiles = generate_cohort(baseline, case, 500, seed=offset)
+        expected = float((target.predict_proba(profiles)[:, 1] < 0.5).mean())
+        assert by_name[case.name].rejection_rate.rate == pytest.approx(expected)

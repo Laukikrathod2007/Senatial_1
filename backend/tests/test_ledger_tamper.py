@@ -171,6 +171,90 @@ def test_verify_report_isolates_a_single_record(ledger_session):
     assert "No report" in missing_reason
 
 
+def test_exported_report_copy_verifies_and_one_character_edit_fails(ledger_session):
+    from sentinel.api.routes.verify import ReportCopyRequest, verify_report_copy
+
+    sealed = _seal_several(ledger_session, 1)[0]
+    exported = ReportCopyRequest(
+        payload=sealed.payload,
+        report_hash=sealed.report_hash,
+        signature=sealed.signature,
+    )
+
+    intact = verify_report_copy(exported)
+    assert intact["valid"] is True
+
+    altered_payload = json.loads(json.dumps(sealed.payload))
+    altered_payload["body"]["finding"] = "changed by one character!"
+    altered = verify_report_copy(
+        ReportCopyRequest(
+            payload=altered_payload,
+            report_hash=sealed.report_hash,
+            signature=sealed.signature,
+        )
+    )
+    assert altered["valid"] is False
+    assert "SHA-256 hash" in altered["reason"]
+
+
+def test_report_copy_preserves_integral_float_bytes_across_javascript_round_trip(ledger_session):
+    """Browser JSON.stringify changes 0.0 to 0; exact signed bytes must travel too."""
+    from sentinel.api.routes.verify import ReportCopyRequest, verify_report_copy
+    from sentinel.ledger.hashing import canonical_bytes
+
+    original_payload = {"measurement": 0.0, "nested": {"rate": 1.0}}
+    sealed = seal_report(
+        ledger_session,
+        original_payload,
+        audit_type="synthetic_copy_test",
+        target_id="synthetic-copy-test",
+    )
+    canonical_payload = canonical_bytes(sealed.payload).decode("utf-8")
+
+    # JavaScript JSON.parse/JSON.stringify sends integral decimals as integers.
+    def javascript_numbers(value):
+        if isinstance(value, float) and value.is_integer():
+            return int(value)
+        if isinstance(value, dict):
+            return {key: javascript_numbers(item) for key, item in value.items()}
+        if isinstance(value, list):
+            return [javascript_numbers(item) for item in value]
+        return value
+
+    browser_payload = javascript_numbers(sealed.payload)
+    intact = verify_report_copy(ReportCopyRequest(
+        payload=browser_payload,
+        canonical_payload=canonical_payload,
+        report_hash=sealed.report_hash,
+        signature=sealed.signature,
+    ))
+    assert intact["valid"] is True
+
+    altered_payload = {**browser_payload, "measurement": 2}
+    altered = verify_report_copy(ReportCopyRequest(
+        payload=altered_payload,
+        canonical_payload=canonical_payload,
+        report_hash=sealed.report_hash,
+        signature=sealed.signature,
+    ))
+    assert altered["valid"] is False
+    assert "does not match" in altered["reason"]
+
+
+def test_report_copy_verifier_rejects_extra_fields():
+    from pydantic import ValidationError
+
+    from sentinel.api.routes.verify import ReportCopyRequest
+
+    with pytest.raises(ValidationError):
+        ReportCopyRequest(
+            payload={"body": {}},
+            report_hash="0" * 64,
+            signature="0" * 128,
+            private_key="must not be accepted",
+        )
+
+
 # -- Merkle ------------------------------------------------------------------
 
 
