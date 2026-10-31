@@ -42,7 +42,7 @@ export function Hero({ onLaunch }: HeroProps) {
           variants={containerVariants}
           initial="hidden"
           animate="visible"
-          className="flex flex-col items-center text-center max-w-4xl mx-auto"
+          className="flex flex-col items-center text-center max-w-5xl mx-auto"
         >
           {/* Top Event Badge */}
           <motion.div
@@ -93,7 +93,7 @@ export function Hero({ onLaunch }: HeroProps) {
           </motion.div>
 
           {/* Call to Actions */}
-          <motion.div variants={itemVariants} className="flex flex-wrap items-center justify-center gap-4 mb-14">
+          <motion.div variants={itemVariants} className="flex flex-wrap items-center justify-center gap-4 mb-12">
             <button
               onClick={onLaunch}
               className="inline-flex items-center gap-3 px-6 py-3.5 bg-gradient-to-r from-[#EA580C] to-[#F59E0B] hover:from-[#C2410C] hover:to-[#EA580C] text-white font-mono uppercase text-xs tracking-wider font-semibold rounded-lg shadow-md shadow-orange-500/20 transition-all group cursor-pointer"
@@ -112,10 +112,77 @@ export function Hero({ onLaunch }: HeroProps) {
             </a>
           </motion.div>
 
+          {/* ── System Walkthrough Video Card (Directly below Hero Actions) ── */}
+          <motion.div 
+            variants={itemVariants}
+            className="w-full max-w-5xl mb-14 text-left"
+          >
+            <div className="bg-white rounded-3xl border border-[#0B1B3D]/10 p-6 sm:p-8 lg:p-10 shadow-sm">
+              <div className="grid lg:grid-cols-12 gap-8 items-center">
+                
+                {/* Left Column: Announcement Details */}
+                <div className="lg:col-span-5 flex flex-col justify-center">
+                  <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/10 text-[#EA580C] text-[11px] font-mono font-bold tracking-wider uppercase mb-4 w-fit border border-amber-500/20">
+                    <span className="w-1.5 h-1.5 rounded-full bg-[#EA580C] animate-pulse" />
+                    <span>What's new · Walkthrough</span>
+                  </div>
+
+                  <h2 className="text-2xl sm:text-3xl lg:text-4xl font-serif text-[#0B1B3D] tracking-tight leading-[1.15] mb-3">
+                    Introducing: <br />
+                    <span className="font-sans font-bold bg-gradient-to-r from-[#EA580C] via-[#F59E0B] to-[#D97706] bg-clip-text text-transparent">
+                      SENTINEL Engine
+                    </span>
+                  </h2>
+
+                  <p className="text-xs sm:text-sm text-[#0B1B3D]/70 font-sans leading-relaxed mb-6">
+                    Watch how SENTINEL probes automated scholarship decisions from the outside, uncovers algorithmic bias without internal access, and seals verifiable cryptographic proof packs.
+                  </p>
+
+                  <div className="flex flex-wrap items-center gap-3">
+                    <button
+                      onClick={onLaunch}
+                      className="inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-gradient-to-r from-[#EA580C] to-[#F59E0B] hover:from-[#C2410C] hover:to-[#EA580C] text-white font-mono uppercase text-[11px] tracking-wider font-bold rounded-xl shadow-md shadow-orange-500/20 transition-all cursor-pointer group"
+                    >
+                      <span>LAUNCH LIVE DEMO</span>
+                      <ArrowRight className="w-3.5 h-3.5 transition-transform group-hover:translate-x-1" />
+                    </button>
+
+                    <a
+                      href="#how-it-works"
+                      className="inline-flex items-center justify-center px-4 py-2.5 border border-[#0B1B3D]/20 hover:border-[#0B1B3D] hover:bg-neutral-50 text-[#0B1B3D] font-mono uppercase text-[11px] tracking-wider font-semibold rounded-xl transition-all"
+                    >
+                      EXPLORE WORKFLOW
+                    </a>
+                  </div>
+                </div>
+
+                {/* Right Column: HTML5 Video Player */}
+                <div className="lg:col-span-7">
+                  <div className="relative rounded-2xl overflow-hidden bg-[#0B1B3D] border border-[#0B1B3D]/15 shadow-xl aspect-video">
+                    <video
+                      src="/Demo_sentinel.mp4"
+                      controls
+                      playsInline
+                      preload="metadata"
+                      className="w-full h-full object-cover rounded-2xl"
+                    >
+                      Your browser does not support the video tag.
+                    </video>
+                  </div>
+                  <div className="mt-2.5 flex items-center justify-between text-[10px] font-mono text-[#0B1B3D]/50 px-1">
+                    <span>SENTINEL · End-to-End System Demonstration</span>
+                    <span className="text-[#EA580C] font-semibold">Demo_sentinel.mp4</span>
+                  </div>
+                </div>
+
+              </div>
+            </div>
+          </motion.div>
+
           {/* Enriched Audit Telemetry & Benchmark Matrix */}
           <motion.div
             variants={itemVariants}
-            className="w-full max-w-4xl border-t border-[#0B1B3D]/10 pt-8"
+            className="w-full max-w-5xl border-t border-[#0B1B3D]/10 pt-8"
           >
             <div className="flex items-center justify-between mb-4 px-1">
               <div className="flex items-center gap-2">
