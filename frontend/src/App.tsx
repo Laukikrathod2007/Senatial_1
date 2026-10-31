@@ -14,6 +14,7 @@ import { BidDocumentAnimation } from "./components/BidDocumentAnimation";
 import { FAQ }                  from "./components/FAQ";
 import { Footer }               from "./components/Footer";
 import { DocsPage }             from "./components/DocsPage";
+import { DemoVideoSection }     from "./components/DemoVideoSection";
 
 /* ─── Dedicated Dedicated Demo / Audit Workspace Page ────────────── */
 import { WorkspacePage }        from "./pages/WorkspacePage";
@@ -84,6 +85,9 @@ export default function App() {
 
         {/* ── Enhanced Technical Foundations & Field Context ───── */}
         <TrustBand />
+
+        {/* ── System Walkthrough Video Demonstration ────────────── */}
+        <DemoVideoSection onLaunchDemo={() => openWorkspace("cases")} />
 
         {/* ── Narrative & Verification Features ─────────────────── */}
         <HowItWorks />
